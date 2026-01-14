@@ -40,7 +40,26 @@ namespace VNTextPatch.Shared.Util
         public static extern int GetKerningPairsW(IntPtr hdc, int nPairs, [MarshalAs(UnmanagedType.LPArray), Out] KERNINGPAIR[] lpKernPair);
 
         [DllImport("gdi32", CallingConvention = CallingConvention.StdCall)]
+        public static extern int GetTextFaceW(IntPtr hdc, int c, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lpName);
+
+        [DllImport("gdi32", CallingConvention = CallingConvention.StdCall)]
         public static extern bool DeleteObject(IntPtr h);
+
+        [DllImport("gdi32", CallingConvention = CallingConvention.StdCall)]
+        public static extern int AddFontResourceExW(
+            [MarshalAs(UnmanagedType.LPWStr)] string name,
+            int fl,
+            IntPtr res
+        );
+
+        [DllImport("gdi32", CallingConvention = CallingConvention.StdCall)]
+        public static extern bool RemoveFontResourceExW(
+            [MarshalAs(UnmanagedType.LPWStr)] string name,
+            int fl,
+            IntPtr res
+        );
+
+        public const int FR_PRIVATE = 0x10;
 
         [DllImport("kernel32", SetLastError = true)]
         public static extern bool CloseHandle(IntPtr handle);
@@ -94,5 +113,82 @@ namespace VNTextPatch.Shared.Util
             IntPtr reserved,
             IntPtr sortHandle
         );
+
+        // Uniscribe APIs for OpenType text measurement
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SCRIPT_ANALYSIS
+        {
+            public ushort flags;
+            public ushort state;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SCRIPT_ITEM
+        {
+            public int iCharPos;
+            public SCRIPT_ANALYSIS a;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SCRIPT_VISATTR
+        {
+            public ushort flags;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct GOFFSET
+        {
+            public int du;
+            public int dv;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct ABC
+        {
+            public int abcA;
+            public uint abcB;
+            public int abcC;
+        }
+
+        [DllImport("usp10.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern int ScriptItemize(
+            [MarshalAs(UnmanagedType.LPWStr)] string pwcInChars,
+            int cInChars,
+            int cMaxItems,
+            IntPtr psControl,
+            IntPtr psState,
+            [MarshalAs(UnmanagedType.LPArray), Out] SCRIPT_ITEM[] pItems,
+            out int pcItems
+        );
+
+        [DllImport("usp10.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern int ScriptShape(
+            IntPtr hdc,
+            ref IntPtr psc,
+            [MarshalAs(UnmanagedType.LPWStr)] string pwcChars,
+            int cChars,
+            int cMaxGlyphs,
+            ref SCRIPT_ANALYSIS psa,
+            [MarshalAs(UnmanagedType.LPArray), Out] ushort[] pwOutGlyphs,
+            [MarshalAs(UnmanagedType.LPArray), Out] ushort[] pwLogClust,
+            [MarshalAs(UnmanagedType.LPArray), Out] SCRIPT_VISATTR[] psva,
+            out int pcGlyphs
+        );
+
+        [DllImport("usp10.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern int ScriptPlace(
+            IntPtr hdc,
+            ref IntPtr psc,
+            [MarshalAs(UnmanagedType.LPArray)] ushort[] pwGlyphs,
+            int cGlyphs,
+            [MarshalAs(UnmanagedType.LPArray)] SCRIPT_VISATTR[] psva,
+            ref SCRIPT_ANALYSIS psa,
+            [MarshalAs(UnmanagedType.LPArray), Out] int[] piAdvance,
+            [MarshalAs(UnmanagedType.LPArray), Out] GOFFSET[] pGoffset,
+            out ABC pABC
+        );
+
+        [DllImport("usp10.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern int ScriptFreeCache(ref IntPtr psc);
     }
 }
