@@ -228,7 +228,8 @@ namespace VNTextPatch.Shared.Scripts.Propeller
                                   'b' => _reader.ReadByte(),
                                   'h' => _reader.ReadInt16(),
                                   'i' => _reader.ReadInt32(),
-                                  's' => ReadStringRange()
+                                  's' => ReadStringRange(),
+                                  _ => throw new InvalidOperationException($"Unexpected operand type: {operandTypes[i]}")
                               };
             }
 

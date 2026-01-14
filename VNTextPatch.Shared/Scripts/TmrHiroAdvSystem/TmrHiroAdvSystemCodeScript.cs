@@ -52,7 +52,8 @@ namespace VNTextPatch.Shared.Scripts.TmrHiroAdvSystem
                 IEnumerable<ScriptString> strings = instr.Type switch
                                                     {
                                                         HiroStringType.Message => SplitMessage(text),
-                                                        HiroStringType.Select => SplitSelect(text)
+                                                        HiroStringType.Select => SplitSelect(text),
+                                                        _ => throw new InvalidOperationException($"Unexpected string type: {instr.Type}")
                                                     };
                 foreach (ScriptString str in strings)
                 {
@@ -101,7 +102,8 @@ namespace VNTextPatch.Shared.Scripts.TmrHiroAdvSystem
                 string newText = instr.Type switch
                                  {
                                      HiroStringType.Message => JoinMessage(stringEnumerator, origText),
-                                     HiroStringType.Select => JoinSelect(stringEnumerator, origText)
+                                     HiroStringType.Select => JoinSelect(stringEnumerator, origText),
+                                     _ => throw new InvalidOperationException($"Unexpected string type: {instr.Type}")
                                  };
                 patcher.ReplaceBytes(instr.TextLength, StringUtil.SjisTunnelEncoding.GetBytes(newText));
 
@@ -180,7 +182,8 @@ namespace VNTextPatch.Shared.Scripts.TmrHiroAdvSystem
                     return Type switch
                            {
                                HiroStringType.Message => InstructionOffset + 2 + 4,
-                               HiroStringType.Select => InstructionOffset + 2 + 4 + 3
+                               HiroStringType.Select => InstructionOffset + 2 + 4 + 3,
+                               _ => throw new InvalidOperationException($"Unexpected string type: {Type}")
                            };
                 }
             }

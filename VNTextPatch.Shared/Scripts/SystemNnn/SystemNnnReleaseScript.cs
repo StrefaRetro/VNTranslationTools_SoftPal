@@ -100,7 +100,8 @@ namespace VNTextPatch.Shared.Scripts.SystemNnn
                                       {
                                           SptCode.SystemCommandPrint => NnnMessageType.Print,
                                           SptCode.SystemCommandLPrint => NnnMessageType.LPrint,
-                                          SptCode.SystemCommandAppend => NnnMessageType.Append
+                                          SptCode.SystemCommandAppend => NnnMessageType.Append,
+                                          _ => throw new InvalidOperationException($"Unexpected SPT code: {item.Code}")
                                       };
 
                 byte[] textBytes = FormatFileText(stringEnumerator, type);

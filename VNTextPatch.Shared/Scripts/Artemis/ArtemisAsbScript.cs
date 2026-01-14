@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,7 +30,8 @@ namespace VNTextPatch.Shared.Scripts.Artemis
                 string text = textRef switch
                               {
                                   PrintCommandRange printRange => PrintCommandsToText(printRange),
-                                  AttributeReference attrRef => attrRef.Command.Attributes[attrRef.AttributeName]
+                                  AttributeReference attrRef => attrRef.Command.Attributes[attrRef.AttributeName],
+                                  _ => throw new InvalidOperationException($"Unexpected text reference type: {textRef.GetType()}")
                               };
                 yield return new ScriptString(text, textRef.Type);
             }

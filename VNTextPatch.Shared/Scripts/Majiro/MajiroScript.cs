@@ -323,7 +323,8 @@ namespace VNTextPatch.Shared.Scripts.Majiro
                 byte[] newCode = range.Type switch
                                  {
                                      MajiroTextCodeType.Ldstr => AssembleLdstr(newText),
-                                     MajiroTextCodeType.Text => AssembleText(newText)
+                                     MajiroTextCodeType.Text => AssembleText(newText),
+                                     _ => throw new InvalidOperationException($"Unexpected text code type: {range.Type}")
                                  };
                 patcher.ReplaceBytes(range.Length, newCode);
             }
