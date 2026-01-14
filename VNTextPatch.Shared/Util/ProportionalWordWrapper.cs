@@ -41,19 +41,11 @@ namespace VNTextPatch.Shared.Util
         private static string FindCustomFontFile()
         {
             string cwd = Directory.GetCurrentDirectory();
-            Console.WriteLine($"FindCustomFontFile: searching in {cwd}");
-            string[] extensions = { "*.ttf", "*.ttc", "*.otf" };
-            foreach (string ext in extensions)
-            {
-                string[] files = Directory.GetFiles(cwd, ext);
-                Console.WriteLine($"FindCustomFontFile: {ext} -> {files.Length} files");
-                foreach (string file in files)
-                    Console.WriteLine($"  {file}");
-                if (files.Length > 0)
-                    return files[0];
-            }
-            Console.WriteLine("FindCustomFontFile: no custom font found");
-            return null;
+            string fontPath = Path.Combine(cwd, "Nunito ExtraBold.ttf");
+            if (File.Exists(fontPath))
+                return fontPath;
+
+            throw new FileNotFoundException($"Nunito ExtraBold.ttf not found in {cwd}");
         }
 
         public static readonly ProportionalWordWrapper Default;

@@ -107,18 +107,9 @@ wstring Proportionalizer::FindCustomFontFile()
     if (pLastSlash != nullptr)
         *pLastSlash = L'\0';
 
-    vector<wstring> extensions = { L".ttf", L".ttc", L".otf" };
-    WIN32_FIND_DATA findData;
-    for (const wstring& extension : extensions)
-    {
-        wstring searchPath = wstring(folderPath) + L"\\*" + extension;
-        HANDLE hFind = FindFirstFile(searchPath.c_str(), &findData);
-        if (hFind != INVALID_HANDLE_VALUE)
-        {
-            FindClose(hFind);
-            return wstring(folderPath) + L"\\" + findData.cFileName;
-        }
-    }
+    wstring fontPath = wstring(folderPath) + L"\\Nunito ExtraBold.ttf";
+    if (GetFileAttributesW(fontPath.c_str()) != INVALID_FILE_ATTRIBUTES)
+        return fontPath;
 
     wchar_t winDir[MAX_PATH];
     (void) GetWindowsDirectoryW(winDir, MAX_PATH);
