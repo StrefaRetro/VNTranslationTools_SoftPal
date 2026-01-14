@@ -22,18 +22,23 @@ namespace VNTextPatch.Shared.Util
                     Console.WriteLine($"Failed to load custom font: {CustomFontFilePath}");
             }
 
+            // Cache config values for GetForSize
+            _fontName = ConfigurationManager.AppSettings["ProportionalFontName"];
+            _fontBold = Convert.ToBoolean(ConfigurationManager.AppSettings["ProportionalFontBold"]);
+            _defaultLineWidth = Convert.ToInt32(ConfigurationManager.AppSettings["ProportionalLineWidth"]);
+
             // Initialize Default and Secondary AFTER loading the custom font
             Default = new ProportionalWordWrapper(
-                ConfigurationManager.AppSettings["ProportionalFontName"],
+                _fontName,
                 Convert.ToInt32(ConfigurationManager.AppSettings["ProportionalFontSize"]),
-                Convert.ToBoolean(ConfigurationManager.AppSettings["ProportionalFontBold"]),
-                Convert.ToInt32(ConfigurationManager.AppSettings["ProportionalLineWidth"])
+                _fontBold,
+                _defaultLineWidth
             );
 
             Secondary = new ProportionalWordWrapper(
-                ConfigurationManager.AppSettings["ProportionalFontName"],
+                _fontName,
                 Convert.ToInt32(ConfigurationManager.AppSettings["ProportionalFontSize"]),
-                Convert.ToBoolean(ConfigurationManager.AppSettings["ProportionalFontBold"]),
+                _fontBold,
                 Convert.ToInt32(ConfigurationManager.AppSettings["SecondaryProportionalLineWidth"])
             );
         }
@@ -50,6 +55,21 @@ namespace VNTextPatch.Shared.Util
 
         public static readonly ProportionalWordWrapper Default;
         public static readonly ProportionalWordWrapper Secondary;
+
+        private static readonly Dictionary<int, ProportionalWordWrapper> _sizeCache = new Dictionary<int, ProportionalWordWrapper>();
+        private static readonly string _fontName;
+        private static readonly bool _fontBold;
+        private static readonly int _defaultLineWidth;
+
+        public static ProportionalWordWrapper GetForSize(int fontSize)
+        {
+            if (_sizeCache.TryGetValue(fontSize, out var wrapper))
+                return wrapper;
+
+            wrapper = new ProportionalWordWrapper(_fontName, fontSize, _fontBold, _defaultLineWidth);
+            _sizeCache[fontSize] = wrapper;
+            return wrapper;
+        }
 
         private readonly IntPtr _dc;
         private readonly IntPtr _font;

@@ -81,6 +81,7 @@ namespace VNTextPatch.Shared.Scripts.Softpal
         }
 
         private static Regex controlCodeRegex = new Regex(@"<([^>]+)>");
+        private static Regex sizeCodeRegex = new Regex(@"^<s(\d+)>");
 
         private string SoftpalizeText(string text)
         {
@@ -89,6 +90,17 @@ namespace VNTextPatch.Shared.Scripts.Softpal
             {
                 noWrap = true;
                 text = text.Substring(8, text.Length - 8);
+            }
+
+            // Parse <sN> size prefix
+            string sizePrefix = "";
+            int fontSize = 0;
+            Match sizeMatch = sizeCodeRegex.Match(text);
+            if (sizeMatch.Success)
+            {
+                sizePrefix = sizeMatch.Value;
+                fontSize = int.Parse(sizeMatch.Groups[1].Value);
+                text = text.Substring(sizeMatch.Length);
             }
 
             text = StringUtil.FancifyQuotes(text);
@@ -104,8 +116,14 @@ namespace VNTextPatch.Shared.Scripts.Softpal
             text = text.Replace("\n", "<br>");
             if (!noWrap)
             {
-                text = ProportionalWordWrapper.Default.Wrap(text, controlCodeRegex, "<br>");
+                var wrapper = fontSize > 0
+                    ? ProportionalWordWrapper.GetForSize(fontSize + 6)
+                    : ProportionalWordWrapper.Default;
+                text = wrapper.Wrap(text, controlCodeRegex, "<br>");
             }
+
+            // Prepend the size prefix back to the result
+            text = sizePrefix + text;
 
             // Remap characters that don't plumb correctly in SoftPal to half-width katakana
             // (they will be mapped back in VNTextProxy)
