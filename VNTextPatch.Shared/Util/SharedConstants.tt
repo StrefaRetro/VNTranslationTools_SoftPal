@@ -1,0 +1,64 @@
+<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ output extension=".cs" encoding="utf-8" #>
+<#
+    // Read the C++ header file (single source of truth) with UTF-8 encoding
+    string headerPath = Host.ResolvePath(@"..\..\VNTextProxy\SharedConstants.h");
+    string headerContent = File.ReadAllText(headerPath, Encoding.UTF8);
+
+    // Parse #define statements
+    var stringDefines = Regex.Matches(headerContent, @"#define\s+(\w+)\s+L""([^""]+)""");
+    var intDefines = Regex.Matches(headerContent, @"#define\s+(\w+)\s+(\d+)\s*$", RegexOptions.Multiline);
+    // Char defines: 'x' (narrow) and u'x' (wide/unicode)
+    var narrowCharDefines = Regex.Matches(headerContent, @"#define\s+(\w+)\s+'([^']+)'");
+    var wideCharDefines = Regex.Matches(headerContent, @"#define\s+(\w+)\s+u'([^']+)'");
+#>
+// Auto-generated from VNTextProxy/SharedConstants.h - DO NOT EDIT
+// Regenerated automatically during build
+
+namespace VNTextPatch.Shared.Util
+{
+    internal static class SharedConstants
+    {
+<#
+    foreach (Match m in stringDefines)
+    {
+        string name = m.Groups[1].Value;
+        string value = m.Groups[2].Value;
+#>
+        public const string <#= name #> = "<#= value #>";
+<#
+    }
+
+    foreach (Match m in intDefines)
+    {
+        string name = m.Groups[1].Value;
+        string value = m.Groups[2].Value;
+#>
+        public const int <#= name #> = <#= value #>;
+<#
+    }
+
+    foreach (Match m in narrowCharDefines)
+    {
+        string name = m.Groups[1].Value;
+        string value = m.Groups[2].Value;
+#>
+        public const char <#= name #> = '<#= value #>';
+<#
+    }
+
+    foreach (Match m in wideCharDefines)
+    {
+        string name = m.Groups[1].Value;
+        string value = m.Groups[2].Value;
+#>
+        public const char <#= name #> = '<#= value #>';
+<#
+    }
+#>
+    }
+}

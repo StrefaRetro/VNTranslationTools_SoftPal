@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 
 #include <string>
 #include <sstream>
@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "PALHooks.h"
+#include "SharedConstants.h"
 
 #pragma comment(lib, "usp10.lib")
 
@@ -263,7 +264,7 @@ HFONT GdiProportionalizer::CreateFontIndirectWHook(LOGFONTW* pFontInfo)
 
     LONG height = pFontInfo->lfHeight; // normally 21
 #if ENLARGE_FONT
-    height += 6;
+    height += FONT_HEIGHT_ADJUSTMENT;
 #endif
 
     LastFontName = CustomFontName;
@@ -495,22 +496,23 @@ static UINT SJISCharToUnicode(const string& sjisStr, bool mapPipeToSpace) {
 
     // Workarounds for characters that don't appear correctly if plumbed through via normal SJIS character codes.
     // This code is intended to reverse the replacements into the half-width katakana range in SoftpalScript.WritePatched().
+    // Note that this code relies on /source-charset:utf-8 /execution-charset:.932
     switch (sjisStr[0]) {
-    case 'ｱ':
-        ch = u'%'; break;
-    case 'ｫ':
-        ch = u'“'; break;
-    case 'ｻ':
-        ch = u'”'; break;
-    case 'ｨ':
-        ch = u'‘'; break;
-    case 'ｴ':
-        ch = u'’'; break;
-    case 'ｲ':
-        ch = u'é'; break;
+    case MAP_SJIS_1:
+        ch = MAP_UNICODE_1; break;
+    case MAP_SJIS_2:
+        ch = MAP_UNICODE_2; break;
+    case MAP_SJIS_3:
+        ch = MAP_UNICODE_3; break;
+    case MAP_SJIS_4:
+        ch = MAP_UNICODE_4; break;
+    case MAP_SJIS_5:
+        ch = MAP_UNICODE_5; break;
+    case MAP_SJIS_6:
+        ch = MAP_UNICODE_6; break;
     }
 
-    if (mapPipeToSpace && ch == '|') {
+    if (mapPipeToSpace && ch == MAP_SPACE_CHARACTER) {
         ch = ' ';
     }
 
@@ -591,7 +593,7 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
     // Workaround to make '|' behave as if it were a space.
     // This code is intended to reverse the ' ' -> '|' replacement in SoftpalScript.WritePatched().
     // (We can't use space characters in TEXT.DAT because SoftPal hardcodes an advance distance for them.)
-    if (ch == '|') {
+    if (ch == MAP_SPACE_CHARACTER) {
         ch = ' ';
 
         // Wipe all pixels from the bitmap GetGlyphOutlineW created
@@ -718,7 +720,7 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
 
 #if ENLARGE_FONT
     // Text is too low in the textbox for enlarged fonts
-    lpgm->gmptGlyphOrigin.y += 4;
+    lpgm->gmptGlyphOrigin.y += FONT_Y_POS_ADJUSTMENT;
 #endif
 
     return ret;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -117,7 +117,7 @@ namespace VNTextPatch.Shared.Scripts.Softpal
             if (!noWrap)
             {
                 var wrapper = fontSize > 0
-                    ? ProportionalWordWrapper.GetForSize(fontSize + 6)
+                    ? ProportionalWordWrapper.GetForSize(fontSize + SharedConstants.FONT_HEIGHT_ADJUSTMENT)
                     : ProportionalWordWrapper.Default;
                 text = wrapper.Wrap(text, controlCodeRegex, "<br>");
             }
@@ -127,18 +127,17 @@ namespace VNTextPatch.Shared.Scripts.Softpal
 
             // Remap characters that don't plumb correctly in SoftPal to half-width katakana
             // (they will be mapped back in VNTextProxy)
-            text = text.Replace("“", "ｫ"); // « in latin1
-            text = text.Replace("”", "ｻ"); // » in latin1
-            text = text.Replace("‘", "ｨ");
-            text = text.Replace("’", "ｴ");
+            text = text.Replace(SharedConstants.MAP_UNICODE_2, SharedConstants.MAP_SJIS_2);
+            text = text.Replace(SharedConstants.MAP_UNICODE_3, SharedConstants.MAP_SJIS_3);
+            text = text.Replace(SharedConstants.MAP_UNICODE_4, SharedConstants.MAP_SJIS_4);
+            text = text.Replace(SharedConstants.MAP_UNICODE_5, SharedConstants.MAP_SJIS_5);
+            text = text.Replace(SharedConstants.MAP_UNICODE_6, SharedConstants.MAP_SJIS_6);
 
-            text = text.Replace("é", "ｲ");
-
-            text = text.Replace(" ", "|");
+            text = text.Replace(' ', SharedConstants.MAP_SPACE_CHARACTER);
 
             // Replace percentage symbol only if it's not used as a control code
             // %0: Heart emoji, %1: multiple sweat drops (stressed) emoji, %2: single sweat drop (awkward) emoji, %3: forehead-vein-popping (anger) emoji
-            text = Regex.Replace(text, @"%(?![0123])", "ｱ");
+            text = Regex.Replace(text, $@"{SharedConstants.MAP_UNICODE_1}(?![0123])", SharedConstants.MAP_SJIS_1.ToString());
 
             return text;
         }

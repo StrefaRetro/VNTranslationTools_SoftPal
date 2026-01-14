@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
@@ -16,41 +16,37 @@ namespace VNTextPatch.Shared.Util
             if (CustomFontFilePath != null)
             {
                 int result = NativeMethods.AddFontResourceExW(CustomFontFilePath, NativeMethods.FR_PRIVATE, IntPtr.Zero);
-                if (result > 0)
-                    Console.WriteLine($"Loaded custom font: {CustomFontFilePath}");
-                else
-                    Console.WriteLine($"Failed to load custom font: {CustomFontFilePath}");
+                if (result <= 0)
+                    throw new FileNotFoundException($"Failed to load custom font: {CustomFontFilePath}");
             }
 
-            // Cache config values for GetForSize
-            _fontName = ConfigurationManager.AppSettings["ProportionalFontName"];
-            _fontBold = Convert.ToBoolean(ConfigurationManager.AppSettings["ProportionalFontBold"]);
-            _defaultLineWidth = Convert.ToInt32(ConfigurationManager.AppSettings["ProportionalLineWidth"]);
+            _fontName = SharedConstants.CUSTOM_FONT_NAME;
+            _fontBold = false;
+            _defaultLineWidth = SharedConstants.PROPORTIONAL_LINE_WIDTH;
 
-            // Initialize Default and Secondary AFTER loading the custom font
             Default = new ProportionalWordWrapper(
                 _fontName,
-                Convert.ToInt32(ConfigurationManager.AppSettings["ProportionalFontSize"]),
+                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + SharedConstants.FONT_HEIGHT_ADJUSTMENT,
                 _fontBold,
                 _defaultLineWidth
             );
 
             Secondary = new ProportionalWordWrapper(
                 _fontName,
-                Convert.ToInt32(ConfigurationManager.AppSettings["ProportionalFontSize"]),
+                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + SharedConstants.FONT_HEIGHT_ADJUSTMENT,
                 _fontBold,
-                Convert.ToInt32(ConfigurationManager.AppSettings["SecondaryProportionalLineWidth"])
+                _defaultLineWidth
             );
         }
 
         private static string FindCustomFontFile()
         {
             string cwd = Directory.GetCurrentDirectory();
-            string fontPath = Path.Combine(cwd, "Nunito ExtraBold.ttf");
+            string fontPath = Path.Combine(cwd, SharedConstants.CUSTOM_FONT_FILENAME);
             if (File.Exists(fontPath))
                 return fontPath;
 
-            throw new FileNotFoundException($"Nunito ExtraBold.ttf not found in {cwd}");
+            throw new FileNotFoundException($"{SharedConstants.CUSTOM_FONT_FILENAME} not found in {cwd}");
         }
 
         public static readonly ProportionalWordWrapper Default;

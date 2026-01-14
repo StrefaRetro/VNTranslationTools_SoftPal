@@ -1,4 +1,5 @@
 ﻿#include "pch.h"
+#include "SharedConstants.h"
 
 using namespace std;
 
@@ -107,7 +108,7 @@ wstring Proportionalizer::FindCustomFontFile()
     if (pLastSlash != nullptr)
         *pLastSlash = L'\0';
 
-    wstring fontPath = wstring(folderPath) + L"\\Nunito ExtraBold.ttf";
+    wstring fontPath = wstring(folderPath) + L"\\" CUSTOM_FONT_FILENAME;
     if (GetFileAttributesW(fontPath.c_str()) != INVALID_FILE_ATTRIBUTES)
         return fontPath;
 

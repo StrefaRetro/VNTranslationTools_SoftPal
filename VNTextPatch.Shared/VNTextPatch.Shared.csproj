@@ -163,8 +163,19 @@
     <Compile Include="Util\StringUtil.cs" />
     <Compile Include="Util\TrackingStringReader.cs" />
     <Compile Include="Scripts\ExcelScript.cs" />
+    <Compile Include="Util\SharedConstants.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SharedConstants.tt</DependentUpon>
+    </Compile>
     <Compile Include="Util\WordWrapper.cs" />
     <Compile Include="Util\ZlibStream.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Util\SharedConstants.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SharedConstants.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="names.xml">
@@ -212,11 +223,14 @@
     <None Include="Scripts\Nexas\spm.ksy" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
+
+  <!-- Auto-regenerate SharedConstants.cs from SharedConstants.h before build -->
+  <PropertyGroup>
+    <TextTransformPath Condition="Exists('$(DevEnvDir)TextTransform.exe')">$(DevEnvDir)TextTransform.exe</TextTransformPath>
+    <TextTransformPath Condition="'$(TextTransformPath)' == ''">$(MSBuildExtensionsPath32)\..\Common7\IDE\TextTransform.exe</TextTransformPath>
+  </PropertyGroup>
+  <Target Name="TransformT4Templates" BeforeTargets="BeforeBuild">
+    <Error Condition="!Exists('$(TextTransformPath)')" Text="TextTransform.exe not found at '$(TextTransformPath)'. Visual Studio is required to build this project." />
+    <Exec Command="&quot;$(TextTransformPath)&quot; -out &quot;$(ProjectDir)Util\SharedConstants.cs&quot; &quot;$(ProjectDir)Util\SharedConstants.tt&quot;" />
   </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
