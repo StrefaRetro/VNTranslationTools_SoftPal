@@ -6,6 +6,7 @@
 
 #define CUSTOM_FONT_NAME L"Nunito ExtraBold"
 #define CUSTOM_FONT_FILENAME L"Nunito ExtraBold.ttf"
+#define JAPANESE_FONT_NAME L"MS Gothic"
 
 // Proportional font settings for line-breaking
 #define GAME_DEFAULT_FONT_HEIGHT 21

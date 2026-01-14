@@ -55,6 +55,30 @@ static std::unordered_map<uint32_t, int> kernAmounts;
 static int currentTextOffset = 0;
 static int totalAdvOut = 0;
 
+// Check if text contains full-width Japanese characters (Hiragana, Katakana, CJK)
+static bool ContainsJapaneseCharacters(const wchar_t* text)
+{
+    if (text == nullptr)
+        return false;
+
+    for (const wchar_t* p = text; *p != L'\0'; ++p)
+    {
+        wchar_t ch = *p;
+        // Hiragana: U+3040-U+309F
+        // Katakana: U+30A0-U+30FF
+        // CJK Unified Ideographs: U+4E00-U+9FFF
+        // CJK Extension A: U+3400-U+4DBF
+        if ((ch >= 0x3040 && ch <= 0x309F) ||  // Hiragana
+            (ch >= 0x30A0 && ch <= 0x30FF) ||  // Katakana
+            (ch >= 0x4E00 && ch <= 0x9FFF) ||  // CJK Unified Ideographs
+            (ch >= 0x3400 && ch <= 0x4DBF))    // CJK Extension A
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void GdiProportionalizer::Init()
 {
 #if GDI_LOGGING
@@ -283,14 +307,34 @@ HFONT GdiProportionalizer::CreateFontIndirectWHook(LOGFONTW* pFontInfo)
 
 HGDIOBJ GdiProportionalizer::SelectObjectHook(HDC hdc, HGDIOBJ obj)
 {
+    const unsigned char* currentText = PALGrabCurrentText::get();
 #if GDI_LOGGING
     FILE* log = nullptr;
     if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::SelectObjectHook(): currentText: %s\n", PALGrabCurrentText::get());
+        fprintf(log, "GdiProportionalizer::SelectObjectHook(): currentText: %s\n", currentText);
         fclose(log);
     }
 #endif
+
+    // Check if this is a font we manage and if text contains Japanese characters
     Font* pFont = FontManager.GetFont(static_cast<HFONT>(obj));
+    if (pFont != nullptr && !CustomFontName.empty() && currentText != nullptr)
+    {
+        wstring wideText = SjisTunnelEncoding::Decode(reinterpret_cast<const char*>(currentText));
+        if (ContainsJapaneseCharacters(wideText.c_str()))
+        {
+            // Use MS Gothic at game default size for Japanese text
+            pFont = FontManager.FetchFont(JAPANESE_FONT_NAME, GAME_DEFAULT_FONT_HEIGHT, false, false, false);
+            obj = pFont->GetGdiHandle();
+#if GDI_LOGGING
+            if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+                fprintf(log, "GdiProportionalizer::SelectObjectHook(): Switching to Japanese font for text: %s\n", currentText);
+                fclose(log);
+            }
+#endif
+        }
+    }
+
     if (pFont != nullptr)
         CurrentFonts[hdc] = pFont;
 
