@@ -19,7 +19,7 @@ namespace VNTextPatch.Shared.Util
 
         public const string CUSTOM_FONT_FILENAME = "Nunito ExtraBold.ttf";
 
-        public const bool DEBUG_LOGGING = true;
+        public static readonly bool DEBUG_LOGGING = false;
 
         public const int GAME_DEFAULT_FONT_HEIGHT = 21;
 
@@ -33,11 +33,13 @@ namespace VNTextPatch.Shared.Util
 
         public const int FONT_Y_TOP_POS_DECREASE = 4;
 
-        public const bool BOOL_PROPORTIONAL_FONT_BOLD = false;
+        public static readonly bool BOOL_PROPORTIONAL_FONT_BOLD = false;
 
         public const int PROPORTIONAL_LINE_WIDTH = 506;
 
         public const int MAX_LINE_WIDTH = 580;
+
+        public const int NUM_LINES_WARN_THRESHOLD = 4;
 
         public const char MAP_SPACE_CHARACTER = '|';
 

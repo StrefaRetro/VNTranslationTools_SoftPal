@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,6 +9,16 @@ namespace VNTextPatch.Shared.Util
     internal abstract class WordWrapper
     {
         private static readonly char[] LineBreakChars = { ' ', '-' };
+        private static int _longTextboxCount = 0;
+
+        public static void PrintSummary()
+        {
+            if (_longTextboxCount > 0)
+            {
+                Console.WriteLine($"Number of overly long textboxes: {_longTextboxCount}");
+                _longTextboxCount = 0;
+            }
+        }
 
         public string Wrap(string text, Regex controlCodePattern = null, string lineBreak = "\r\n")
         {
@@ -45,8 +55,9 @@ namespace VNTextPatch.Shared.Util
             }
         NestedBreak:
 
-            if (numLines >= 4 && SharedConstants.DEBUG_LOGGING)
+            if (numLines >= SharedConstants.NUM_LINES_WARN_THRESHOLD)
             {
+                _longTextboxCount++;
                 Console.WriteLine("Warning: " + numLines + " lines in: " + result.ToString());
             }
 

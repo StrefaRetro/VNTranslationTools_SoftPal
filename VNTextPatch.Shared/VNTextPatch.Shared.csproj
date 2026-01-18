@@ -228,9 +228,18 @@
   <PropertyGroup>
     <TextTransformPath Condition="Exists('$(DevEnvDir)TextTransform.exe')">$(DevEnvDir)TextTransform.exe</TextTransformPath>
     <TextTransformPath Condition="'$(TextTransformPath)' == ''">$(MSBuildExtensionsPath32)\..\Common7\IDE\TextTransform.exe</TextTransformPath>
+    <SharedConstantsHeader>$(ProjectDir)..\VNTextProxy\SharedConstants.h</SharedConstantsHeader>
   </PropertyGroup>
-  <Target Name="TransformT4Templates" BeforeTargets="BeforeBuild">
+  <Target Name="TransformT4Templates" BeforeTargets="BeforeBuild"
+          Inputs="$(ProjectDir)Util\SharedConstants.tt;$(SharedConstantsHeader)"
+          Outputs="$(ProjectDir)Util\SharedConstants.cs">
     <Error Condition="!Exists('$(TextTransformPath)')" Text="TextTransform.exe not found at '$(TextTransformPath)'. Visual Studio is required to build this project." />
     <Exec Command="&quot;$(TextTransformPath)&quot; -out &quot;$(ProjectDir)Util\SharedConstants.cs&quot; &quot;$(ProjectDir)Util\SharedConstants.tt&quot;" />
   </Target>
+  <!-- Force rebuild when SharedConstants.h changes -->
+  <ItemGroup>
+    <None Include="..\VNTextProxy\SharedConstants.h">
+      <Link>SharedConstants.h</Link>
+    </None>
+  </ItemGroup>
 </Project>

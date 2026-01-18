@@ -4,7 +4,7 @@
 // This file is the single source of truth.
 // C# constants are auto-generated from this file via SharedConstants.tt
 
-#define DEBUG_LOGGING 1
+#define DEBUG_LOGGING 0
 
 // Expected original game values
 #define JAPANESE_FONT_NAME L"MS Gothic"
@@ -13,6 +13,8 @@
 #define GAME_DEFAULT_MAX_LINE_WIDTH 528
 
 // Our font changes
+
+// Large font that fits nicely within 3 lines
 #define CUSTOM_FONT_NAME L"Nunito ExtraBold"
 #define CUSTOM_FONT_FILENAME L"Nunito ExtraBold.ttf"
 #define FONT_HEIGHT_INCREASE 6
@@ -21,6 +23,29 @@
 #define BOOL_PROPORTIONAL_FONT_BOLD 0
 #define PROPORTIONAL_LINE_WIDTH 506
 #define MAX_LINE_WIDTH 580
+#define NUM_LINES_WARN_THRESHOLD 4
+
+// Medium font designed to fit within 3 lines
+//#define CUSTOM_FONT_NAME L"Nunito ExtraBold"
+//#define CUSTOM_FONT_FILENAME L"Nunito ExtraBold.ttf"
+//#define FONT_HEIGHT_INCREASE 2
+//#define FONT_Y_SPACING_BETWEEN_LINES 7
+//#define FONT_Y_TOP_POS_DECREASE 2
+//#define BOOL_PROPORTIONAL_FONT_BOLD 0
+//#define PROPORTIONAL_LINE_WIDTH 495
+//#define MAX_LINE_WIDTH 580
+//#define NUM_LINES_WARN_THRESHOLD 4
+
+// Small font designed for 4 lines max
+//#define CUSTOM_FONT_NAME L"Nunito ExtraBold"
+//#define CUSTOM_FONT_FILENAME L"Nunito ExtraBold.ttf"
+//#define FONT_HEIGHT_INCREASE 0
+//#define FONT_Y_SPACING_BETWEEN_LINES 2
+//#define FONT_Y_TOP_POS_DECREASE 0
+//#define BOOL_PROPORTIONAL_FONT_BOLD 0
+//#define PROPORTIONAL_LINE_WIDTH 480
+//#define MAX_LINE_WIDTH 580
+//#define NUM_LINES_WARN_THRESHOLD 5
 
 // SJIS tunnelling doesn't work in softpal, so plumb special characters in ASCII and half-width katakana
 #define MAP_SPACE_CHARACTER '|'

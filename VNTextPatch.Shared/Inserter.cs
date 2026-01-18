@@ -48,6 +48,8 @@ namespace VNTextPatch.Shared
 
             _outputCollection.Add(outputScriptName);
             _inputOutputScript.WritePatched(strings, new ScriptLocation(_outputCollection, outputScriptName));
+
+            WordWrapper.PrintSummary();
         }
 
         public void InsertAll()
@@ -72,6 +74,8 @@ namespace VNTextPatch.Shared
                     AddInputScriptMessageCount(inputScriptName);
                 }
             }
+
+            WordWrapper.PrintSummary();
         }
 
         private void AddInputScriptMessageCount(string scriptName)
