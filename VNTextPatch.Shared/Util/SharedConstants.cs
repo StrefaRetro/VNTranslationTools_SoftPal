@@ -35,9 +35,9 @@ namespace VNTextPatch.Shared.Util
 
         public static readonly bool BOOL_PROPORTIONAL_FONT_BOLD = false;
 
-        public const int PROPORTIONAL_LINE_WIDTH = 506;
+        public const int PROPORTIONAL_LINE_WIDTH = 545;
 
-        public const int MAX_LINE_WIDTH = 580;
+        public const int MAX_LINE_WIDTH = 570;
 
         public const int NUM_LINES_WARN_THRESHOLD = 4;
 

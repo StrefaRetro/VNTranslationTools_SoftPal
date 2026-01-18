@@ -159,6 +159,13 @@ namespace VNTextPatch.Shared.Scripts.Softpal
             // %0: Heart emoji, %1: multiple sweat drops (stressed) emoji, %2: single sweat drop (awkward) emoji, %3: forehead-vein-popping (anger) emoji
             text = Regex.Replace(text, $@"{SharedConstants.MAP_UNICODE_1}(?![0123])", SharedConstants.MAP_SJIS_1.ToString());
 
+            // Truncate to 250 characters to prevent buffer overflow
+            if (text.Length > 250)
+            {
+                Console.WriteLine("Warning: more than 250 characters in: " + text);
+                text = text.Substring(0, 250);
+            }
+
             return text;
         }
 

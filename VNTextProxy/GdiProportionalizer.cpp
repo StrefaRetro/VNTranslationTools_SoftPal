@@ -619,7 +619,7 @@ static int GetKerningAdjustment(HDC hdc, SCRIPT_CACHE* psc, wchar_t c1, wchar_t 
     }
 #endif
 
-    return -abs(wPair - (w1 + w2));
+    return wPair - (w1 + w2);
 }
 
 DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuFormat, LPGLYPHMETRICS lpgm, DWORD cjBuffer, LPVOID pvBuffer, MAT2* lpmat2)
@@ -753,12 +753,10 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
         }
     }
 
-    // SoftPal systematically adds 1 extra pixel of spacing after every character, beyond what the font specifies.
+    // SoftPal systematically adds 2 extra pixels of spacing after every character, beyond what the font specifies.
     // This is not very noticeable with Japanese characters, but it's extremely noticeable with a proportional Latin font.
     // Cancel out that behavior here.
-    if (advOut > 0) {
-        advOut -= 1;
-    }
+    advOut = max(0, advOut - 2);
 
     lpgm->gmCellIncX = advOut;
 

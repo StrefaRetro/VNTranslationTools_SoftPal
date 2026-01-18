@@ -21,8 +21,8 @@
 #define FONT_Y_SPACING_BETWEEN_LINES 7
 #define FONT_Y_TOP_POS_DECREASE 4
 #define BOOL_PROPORTIONAL_FONT_BOLD 0
-#define PROPORTIONAL_LINE_WIDTH 506
-#define MAX_LINE_WIDTH 580
+#define PROPORTIONAL_LINE_WIDTH 545
+#define MAX_LINE_WIDTH 570
 #define NUM_LINES_WARN_THRESHOLD 4
 
 // Medium font designed to fit within 3 lines
@@ -32,19 +32,19 @@
 //#define FONT_Y_SPACING_BETWEEN_LINES 7
 //#define FONT_Y_TOP_POS_DECREASE 2
 //#define BOOL_PROPORTIONAL_FONT_BOLD 0
-//#define PROPORTIONAL_LINE_WIDTH 495
-//#define MAX_LINE_WIDTH 580
+//#define PROPORTIONAL_LINE_WIDTH 545
+//#define MAX_LINE_WIDTH 570
 //#define NUM_LINES_WARN_THRESHOLD 4
 
 // Small font designed for 4 lines max
 //#define CUSTOM_FONT_NAME L"Nunito ExtraBold"
 //#define CUSTOM_FONT_FILENAME L"Nunito ExtraBold.ttf"
 //#define FONT_HEIGHT_INCREASE 0
-//#define FONT_Y_SPACING_BETWEEN_LINES 2
-//#define FONT_Y_TOP_POS_DECREASE 0
+//#define FONT_Y_SPACING_BETWEEN_LINES 1
+//#define FONT_Y_TOP_POS_DECREASE -2
 //#define BOOL_PROPORTIONAL_FONT_BOLD 0
-//#define PROPORTIONAL_LINE_WIDTH 480
-//#define MAX_LINE_WIDTH 580
+//#define PROPORTIONAL_LINE_WIDTH 545
+//#define MAX_LINE_WIDTH 570
 //#define NUM_LINES_WARN_THRESHOLD 5
 
 // SJIS tunnelling doesn't work in softpal, so plumb special characters in ASCII and half-width katakana
