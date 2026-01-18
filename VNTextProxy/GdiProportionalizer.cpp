@@ -288,7 +288,7 @@ HFONT GdiProportionalizer::CreateFontIndirectWHook(LOGFONTW* pFontInfo)
 
     LONG height = pFontInfo->lfHeight; // normally 21
 #if ENLARGE_FONT
-    height += FONT_HEIGHT_ADJUSTMENT;
+    height += FONT_HEIGHT_INCREASE;
 #endif
 
     LastFontName = CustomFontName;
@@ -764,7 +764,7 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
 
 #if ENLARGE_FONT
     // Text is too low in the textbox for enlarged fonts
-    lpgm->gmptGlyphOrigin.y += FONT_Y_POS_ADJUSTMENT;
+    lpgm->gmptGlyphOrigin.y += FONT_Y_TOP_POS_DECREASE;
 #endif
 
     return ret;

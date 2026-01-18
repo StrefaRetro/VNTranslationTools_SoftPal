@@ -26,14 +26,14 @@ namespace VNTextPatch.Shared.Util
 
             Default = new ProportionalWordWrapper(
                 _fontName,
-                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + SharedConstants.FONT_HEIGHT_ADJUSTMENT,
+                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + SharedConstants.FONT_HEIGHT_INCREASE,
                 _fontBold,
                 _defaultLineWidth
             );
 
             Secondary = new ProportionalWordWrapper(
                 _fontName,
-                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + SharedConstants.FONT_HEIGHT_ADJUSTMENT,
+                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + SharedConstants.FONT_HEIGHT_INCREASE,
                 _fontBold,
                 _defaultLineWidth
             );

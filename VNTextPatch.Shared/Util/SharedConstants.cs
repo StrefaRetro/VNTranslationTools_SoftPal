@@ -13,19 +13,29 @@ namespace VNTextPatch.Shared.Util
     internal static class SharedConstants
     {
 
+        public const string JAPANESE_FONT_NAME = "MS Gothic";
+
         public const string CUSTOM_FONT_NAME = "Nunito ExtraBold";
 
         public const string CUSTOM_FONT_FILENAME = "Nunito ExtraBold.ttf";
 
         public const int GAME_DEFAULT_FONT_HEIGHT = 21;
 
+        public const int GAME_DEFAULT_SPACING_BETWEEN_LINES = 8;
+
+        public const int GAME_DEFAULT_MAX_LINE_WIDTH = 528;
+
+        public const int FONT_HEIGHT_INCREASE = 6;
+
+        public const int FONT_Y_SPACING_BETWEEN_LINES = 7;
+
+        public const int FONT_Y_TOP_POS_DECREASE = 4;
+
         public const int PROPORTIONAL_FONT_BOLD = 0;
 
         public const int PROPORTIONAL_LINE_WIDTH = 506;
 
-        public const int FONT_HEIGHT_ADJUSTMENT = 6;
-
-        public const int FONT_Y_POS_ADJUSTMENT = 4;
+        public const int MAX_LINE_WIDTH = 580;
 
         public const char MAP_SPACE_CHARACTER = '|';
 

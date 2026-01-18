@@ -1,3 +1,4 @@
+using NPOI.OpenXmlFormats.Dml.Diagram;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,28 +16,46 @@ namespace VNTextPatch.Shared.Scripts.Softpal
 
         public string Extension => ".src";
 
+        private bool replaceScriptSrcConstant(int originalVal, int replacementVal, int expectedOffset)
+        {
+            if (_code[expectedOffset] == (originalVal & 0xFF) && _code[expectedOffset + 1] == (originalVal >> 8))
+            {
+                _code[expectedOffset] = (byte)(replacementVal & 0xFF);
+                _code[expectedOffset + 1] = (byte)(replacementVal >> 8);
+//                Console.WriteLine($"Replaced script.src value at 0x{expectedOffset:X} from {originalVal} to {replacementVal}");
+                return true;
+            }
+            return false;
+        }
         private void expandMaxLineLength()
         {
             //Console.WriteLine("Modifying max line length");
-            int originalVal = 528;
+            int originalVal = SharedConstants.GAME_DEFAULT_MAX_LINE_WIDTH;
             // screen width is around 610, textbox boundary around 570.
             // Note that raising this also slows down text fade-in across lines
-            int replacementVal = 580; 
+            int replacementVal = SharedConstants.MAX_LINE_WIDTH;
 
             int expectedOffset = 0x26084;
-            if (_code[expectedOffset] == (originalVal & 0xFF) && _code[expectedOffset+1] == (originalVal >> 8))
-            {
-                _code[expectedOffset] = (byte) (replacementVal & 0xFF);
-                _code[expectedOffset+1] = (byte) (replacementVal >> 8);
-                //Console.WriteLine("Replaced max line length from " + originalVal + " to " + replacementVal);
-            }
+
+            replaceScriptSrcConstant(originalVal, replacementVal, expectedOffset);
         }
+
+        private void expandSpacingBetweenLines()
+        {
+            int originalVal = SharedConstants.GAME_DEFAULT_SPACING_BETWEEN_LINES;
+            int replacementVal = SharedConstants.FONT_Y_SPACING_BETWEEN_LINES;
+            int expectedOffset = 0x2605C;
+
+            replaceScriptSrcConstant(originalVal, replacementVal, expectedOffset);
+        }
+
         public void Load(ScriptLocation location)
         {
             string codeFilePath = location.ToFilePath();
             _code = File.ReadAllBytes(codeFilePath);
 
             expandMaxLineLength();
+            expandSpacingBetweenLines();
 
             string folderPath = Path.GetDirectoryName(codeFilePath);
             string textFilePath = Path.Combine(folderPath, "TEXT.DAT");
@@ -117,7 +136,7 @@ namespace VNTextPatch.Shared.Scripts.Softpal
             if (!noWrap)
             {
                 var wrapper = fontSize > 0
-                    ? ProportionalWordWrapper.GetForSize(fontSize + SharedConstants.FONT_HEIGHT_ADJUSTMENT)
+                    ? ProportionalWordWrapper.GetForSize(fontSize + SharedConstants.FONT_HEIGHT_INCREASE)
                     : ProportionalWordWrapper.Default;
                 text = wrapper.Wrap(text, controlCodeRegex, "<br>");
             }
