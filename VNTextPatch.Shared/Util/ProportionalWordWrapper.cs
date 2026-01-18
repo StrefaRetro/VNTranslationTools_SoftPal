@@ -94,13 +94,16 @@ namespace VNTextPatch.Shared.Util
 
             StringBuilder actualFontName = new StringBuilder(256);
             NativeMethods.GetTextFaceW(_dc, actualFontName.Capacity, actualFontName);
-            Console.WriteLine($"Requested font: {fontName}, actual font: {actualFontName}");
+            if (SharedConstants.DEBUG_LOGGING)
+            {
+                Console.WriteLine($"Requested font: {fontName}, actual font: {actualFontName}");
+            }
 
             LineWidth = lineWidth;
 
             _scriptCache = IntPtr.Zero;
 
-            Console.WriteLine($"ProportionalWordWrapper: font={fontName}, size={fontSize}, bold={bold}, lineWidth={lineWidth}");
+            if (SharedConstants.DEBUG_LOGGING) Console.WriteLine($"ProportionalWordWrapper: font={fontName}, size={fontSize}, bold={bold}, lineWidth={lineWidth}");
         }
 
         protected override int GetTextWidth(string text, int offset, int length)

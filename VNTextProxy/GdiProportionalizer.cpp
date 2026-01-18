@@ -11,7 +11,7 @@
 
 #pragma comment(lib, "usp10.lib")
 
-#define GDI_LOGGING 0
+#define GDI_LOGGING DEBUG_LOGGING
 
 #define ENLARGE_FONT 1
 #define LEGACY_KERNING 0

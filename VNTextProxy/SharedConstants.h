@@ -4,6 +4,8 @@
 // This file is the single source of truth.
 // C# constants are auto-generated from this file via SharedConstants.tt
 
+#define DEBUG_LOGGING 1
+
 // Expected original game values
 #define JAPANESE_FONT_NAME L"MS Gothic"
 #define GAME_DEFAULT_FONT_HEIGHT 21
@@ -16,7 +18,7 @@
 #define FONT_HEIGHT_INCREASE 6
 #define FONT_Y_SPACING_BETWEEN_LINES 7
 #define FONT_Y_TOP_POS_DECREASE 4
-#define PROPORTIONAL_FONT_BOLD 0
+#define BOOL_PROPORTIONAL_FONT_BOLD 0
 #define PROPORTIONAL_LINE_WIDTH 506
 #define MAX_LINE_WIDTH 580
 

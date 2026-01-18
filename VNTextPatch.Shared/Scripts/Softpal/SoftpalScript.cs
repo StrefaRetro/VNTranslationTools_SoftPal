@@ -22,14 +22,14 @@ namespace VNTextPatch.Shared.Scripts.Softpal
             {
                 _code[expectedOffset] = (byte)(replacementVal & 0xFF);
                 _code[expectedOffset + 1] = (byte)(replacementVal >> 8);
-//                Console.WriteLine($"Replaced script.src value at 0x{expectedOffset:X} from {originalVal} to {replacementVal}");
+                if (SharedConstants.DEBUG_LOGGING) Console.WriteLine($"Replaced script.src value at 0x{expectedOffset:X} from {originalVal} to {replacementVal}");
                 return true;
             }
             return false;
         }
         private void expandMaxLineLength()
         {
-            //Console.WriteLine("Modifying max line length");
+            if (SharedConstants.DEBUG_LOGGING) Console.WriteLine("Modifying max line length");
             int originalVal = SharedConstants.GAME_DEFAULT_MAX_LINE_WIDTH;
             // screen width is around 610, textbox boundary around 570.
             // Note that raising this also slows down text fade-in across lines
@@ -55,6 +55,7 @@ namespace VNTextPatch.Shared.Scripts.Softpal
             _code = File.ReadAllBytes(codeFilePath);
 
             expandMaxLineLength();
+
             expandSpacingBetweenLines();
 
             string folderPath = Path.GetDirectoryName(codeFilePath);
@@ -190,12 +191,11 @@ namespace VNTextPatch.Shared.Scripts.Softpal
             {
                 iteration++;
                 
-                /*
-                if (iteration is >= 6895 and <= 6930 or >= 70650 and <= 70660)
+                if (SharedConstants.DEBUG_LOGGING && iteration is >= 6895 and <= 6930 or >= 70650 and <= 70660)
                 {
                     Console.WriteLine($"Debugging iteration: {iteration} offset: {operand.Offset:X} type: {operand.Type} "
                         + $"text: {stringEnumerator.Current.Text}");
-                }*/
+                }
                 
 
                 if (stringStack.Count > 0)
@@ -252,14 +252,12 @@ namespace VNTextPatch.Shared.Scripts.Softpal
                     message1 = logString.Substring(0, firstMessageLength);
                     message2 = logString.Substring(firstMessageLength);
 
-                    /*
-                    if (logString.StartsWith("\"Hey,|don't|go|getting|surprised")
-                        || logString.StartsWith("\"Breakfast|is|the|most|important")
-                        )
+                    if (SharedConstants.DEBUG_LOGGING && (logString.StartsWith("\"Hey,|don't|go|getting|surprised")
+                        || logString.StartsWith("\"Breakfast|is|the|most|important")))
                     {
                         Console.WriteLine("Merged split line at " + iteration + ": LogString: " + logString
                             + " message1: " + message1 + "message2: " + message2);
-                    }*/
+                    }
 
                     WriteAndPatch(name1, operand.Offset);
                     stringStack.Add(logString);
@@ -273,10 +271,9 @@ namespace VNTextPatch.Shared.Scripts.Softpal
 
                 // There are two loose LogMessages at offsets B3360 and 44ACA8, followed by an identical Message for some reason
                 if (operand.Type == ScriptStringType.LogMessage)
-                {       
-                    // throw new InvalidDataException
-                    //Console.WriteLine($"Unexpected LogMessage line at {iteration} offset: {operand.Offset:X} type: {operand.Type} "
-                    //    + $"text: {stringEnumerator.Current.Text}");
+                {
+                    if (SharedConstants.DEBUG_LOGGING) Console.WriteLine($"Unexpected LogMessage line at {iteration} offset: {operand.Offset:X} type: {operand.Type} "
+                        + $"text: {stringEnumerator.Current.Text}");
 
                     WriteAndPatch("TODO", operand.Offset);
                     continue;

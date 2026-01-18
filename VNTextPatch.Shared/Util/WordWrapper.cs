@@ -45,7 +45,7 @@ namespace VNTextPatch.Shared.Util
             }
         NestedBreak:
 
-            if (numLines >= 4)
+            if (numLines >= 4 && SharedConstants.DEBUG_LOGGING)
             {
                 Console.WriteLine("Warning: " + numLines + " lines in: " + result.ToString());
             }

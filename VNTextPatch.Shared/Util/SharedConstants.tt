@@ -37,9 +37,21 @@ namespace VNTextPatch.Shared.Util
     {
         string name = m.Groups[1].Value;
         string value = m.Groups[2].Value;
+        // Treat 0/1 values with names containing LOGGING, BOOL, ENABLE, or DEBUG as booleans
+        bool isBooleanFlag = (value == "0" || value == "1") &&
+            (name.Contains("LOGGING") || name.Contains("BOOL") || name.Contains("ENABLE") || name.Contains("DEBUG"));
+        if (isBooleanFlag)
+        {
+#>
+        public const bool <#= name #> = <#= value == "1" ? "true" : "false" #>;
+<#
+        }
+        else
+        {
 #>
         public const int <#= name #> = <#= value #>;
 <#
+        }
     }
 
     foreach (Match m in narrowCharDefines)

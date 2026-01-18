@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using VNTextPatch.Shared.Util;
 
 namespace VNTextPatch.Shared
 {
@@ -61,7 +62,7 @@ namespace VNTextPatch.Shared
         {
             foreach (string inputScriptName in _inputCollection.Scripts)
             {
-                Console.WriteLine(inputScriptName);
+                if (SharedConstants.DEBUG_LOGGING) Console.WriteLine(inputScriptName);
 
                 string textScriptName;
                 if (!string.IsNullOrEmpty(_inputScript.Extension))

@@ -1,10 +1,11 @@
 #include "pch.h"
 
 #include <string>
-
 #include <windows.h>
 
-#define PALTEXT_LOGGING 0
+#include "SharedConstants.h"
+
+#define PALTEXT_LOGGING DEBUG_LOGGING
 
 #ifdef PALTEXT_LOGGING
 static FILE* g_logFile = nullptr;
