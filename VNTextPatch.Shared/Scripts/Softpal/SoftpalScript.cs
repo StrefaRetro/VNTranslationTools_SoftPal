@@ -152,6 +152,7 @@ namespace VNTextPatch.Shared.Scripts.Softpal
             text = text.Replace(SharedConstants.MAP_UNICODE_4, SharedConstants.MAP_SJIS_4);
             text = text.Replace(SharedConstants.MAP_UNICODE_5, SharedConstants.MAP_SJIS_5);
             text = text.Replace(SharedConstants.MAP_UNICODE_6, SharedConstants.MAP_SJIS_6);
+            text = text.Replace(SharedConstants.MAP_UNICODE_7, SharedConstants.MAP_SJIS_7);
 
             text = text.Replace(' ', SharedConstants.MAP_SPACE_CHARACTER);
 

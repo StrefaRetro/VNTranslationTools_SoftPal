@@ -19,7 +19,7 @@ namespace VNTextPatch.Shared.Util
 
         public const string CUSTOM_FONT_FILENAME = "Nunito ExtraBold.ttf";
 
-        public static readonly bool DEBUG_LOGGING = false;
+        public static readonly bool DEBUG_LOGGING = true;
 
         public const int GAME_DEFAULT_FONT_HEIGHT = 21;
 
@@ -53,7 +53,9 @@ namespace VNTextPatch.Shared.Util
 
         public const char MAP_SJIS_5 = 'ｴ';
 
-        public const char MAP_SJIS_6 = 'ｲ';
+        public const char MAP_SJIS_6 = 'ｶ';
+
+        public const char MAP_SJIS_7 = 'ｲ';
 
         public const char MAP_UNICODE_1 = '%';
 
@@ -66,6 +68,8 @@ namespace VNTextPatch.Shared.Util
         public const char MAP_UNICODE_5 = '’';
 
         public const char MAP_UNICODE_6 = 'é';
+
+        public const char MAP_UNICODE_7 = '♪';
 
     }
 }

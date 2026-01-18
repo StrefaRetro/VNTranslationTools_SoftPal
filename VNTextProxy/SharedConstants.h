@@ -59,5 +59,7 @@
 #define MAP_UNICODE_4 u'‘'
 #define MAP_SJIS_5 'ｴ'
 #define MAP_UNICODE_5 u'’'
-#define MAP_SJIS_6 'ｲ'
+#define MAP_SJIS_6 'ｶ'
 #define MAP_UNICODE_6 u'é'
+#define MAP_SJIS_7 'ｲ'
+#define MAP_UNICODE_7 u'♪'

@@ -554,6 +554,8 @@ static UINT SJISCharToUnicode(const string& sjisStr, bool mapPipeToSpace) {
         ch = MAP_UNICODE_5; break;
     case MAP_SJIS_6:
         ch = MAP_UNICODE_6; break;
+    case MAP_SJIS_7:
+        ch = MAP_UNICODE_7; break;
     }
 
     if (mapPipeToSpace && ch == MAP_SPACE_CHARACTER) {
@@ -734,6 +736,23 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
                 currentChar += sjisCharLength;
             } while (*previousChar != '>' && *currentChar != '\0');
         }
+
+        // Check if next character is music note - switch to MS Gothic for that character
+        int nextSjisCharLength = sjis_next_char(currentChar) - currentChar;
+        string nextSjisStr((const char*)currentChar, nextSjisCharLength);
+        UINT nextCh = SJISCharToUnicode(nextSjisStr, false);
+        if (nextCh == MAP_UNICODE_7) {
+            Font* pFont = CurrentFonts[hdc];
+            if (pFont != nullptr) {
+                Font* msGothic = FontManager.FetchFont(JAPANESE_FONT_NAME, GAME_DEFAULT_FONT_HEIGHT, false, false, false);
+                SelectObject(hdc, msGothic->GetGdiHandle());
+            }
+        }
+        else if (ch == MAP_UNICODE_7) {
+            // Just finished rendering music note - restore normal font
+            fontChanged = true;
+        }
+
         totalAdvOut += advOut;
 
         if (fontChanged) {
