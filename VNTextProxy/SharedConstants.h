@@ -4,7 +4,7 @@
 // This file is the single source of truth.
 // C# constants are auto-generated from this file via SharedConstants.tt
 
-#define DEBUG_LOGGING 0
+#define DEBUG_LOGGING 1
 
 // Expected original game values
 #define JAPANESE_FONT_NAME L"MS Gothic"
@@ -17,6 +17,7 @@
 // Large font that fits nicely within 3 lines
 #define CUSTOM_FONT_NAME L"Nunito ExtraBold"
 #define CUSTOM_FONT_FILENAME L"Nunito ExtraBold.ttf"
+#define MONOSPACE_FONT_FILENAME L"Inconsolata ExtraBold.ttf"
 #define FONT_HEIGHT_INCREASE 6
 #define FONT_Y_SPACING_BETWEEN_LINES 7
 #define FONT_Y_TOP_POS_DECREASE 4

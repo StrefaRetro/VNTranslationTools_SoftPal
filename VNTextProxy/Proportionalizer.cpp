@@ -6,6 +6,7 @@ using namespace std;
 void Proportionalizer::Init()
 {
     LastFontName = CustomFontName = LoadCustomFont();
+    MonospaceFontName = LoadMonospaceFont();
 }
 
 int Proportionalizer::MeasureStringWidth(const wstring& str, int fontSize)
@@ -95,6 +96,30 @@ wstring Proportionalizer::LoadCustomFont()
         return L"";
 
     wstring fontFileName = CustomFontFilePath;
+    fontFileName.erase(0, fontFileName.rfind(L'\\') + 1);
+    fontFileName.erase(fontFileName.find(L'.'), -1);
+    return fontFileName;
+}
+
+wstring Proportionalizer::LoadMonospaceFont()
+{
+    // Build path: same folder as exe + MONOSPACE_FONT_FILENAME
+    wchar_t folderPath[MAX_PATH];
+    GetModuleFileName(GetModuleHandle(nullptr), folderPath, sizeof(folderPath) / sizeof(wchar_t));
+    wchar_t* pLastSlash = wcsrchr(folderPath, L'\\');
+    if (pLastSlash != nullptr)
+        *pLastSlash = L'\0';
+
+    wstring fontPath = wstring(folderPath) + L"\\" MONOSPACE_FONT_FILENAME;
+    if (GetFileAttributesW(fontPath.c_str()) == INVALID_FILE_ATTRIBUTES)
+        return L"";
+
+    int numFonts = AddFontResourceExW(fontPath.c_str(), FR_PRIVATE, nullptr);
+    if (numFonts == 0)
+        return L"";
+
+    // Extract font name from filename (remove path and extension)
+    wstring fontFileName = fontPath;
     fontFileName.erase(0, fontFileName.rfind(L'\\') + 1);
     fontFileName.erase(fontFileName.find(L'.'), -1);
     return fontFileName;

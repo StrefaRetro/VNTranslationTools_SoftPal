@@ -112,6 +112,9 @@ namespace VNTextPatch.Shared.Scripts.Softpal
                 text = text.Substring(8, text.Length - 8);
             }
 
+            // Check for monospace mode
+            bool monospace = text.StartsWith("<monospace>");
+
             // Parse <sN> size prefix
             string sizePrefix = "";
             int fontSize = 0;
@@ -123,22 +126,30 @@ namespace VNTextPatch.Shared.Scripts.Softpal
                 text = text.Substring(sizeMatch.Length);
             }
 
-            text = StringUtil.FancifyQuotes(text);
+            // Skip fancy quotes and em dash replacement in monospace mode
+            if (!monospace)
+            {
+                text = StringUtil.FancifyQuotes(text);
 
+                text = text.Replace("--", "―"); // em dash replacement
+            }
             // Fix accidental copy-pastes of similar-looking Japanese characters into English
             text = text.Replace("＆", "&"); // 0xff06 (fullwidth ampersand) is intended to be ASCII ampersand
             text = text.Replace("—", "―");  // 0x8213 (horizontal bar) is intended to be em-dash 0x8212
 
-            text = text.Replace("--", "―"); // em dash replacement
             text = text.Replace("…", "..."); // ellipsis replacement
 
             text = text.Replace("\r\n", "<br>");
             text = text.Replace("\n", "<br>");
             if (!noWrap)
             {
-                var wrapper = fontSize > 0
-                    ? ProportionalWordWrapper.GetForSize(fontSize + SharedConstants.FONT_HEIGHT_INCREASE)
-                    : ProportionalWordWrapper.Default;
+                WordWrapper wrapper;
+                if (monospace && ProportionalWordWrapper.Monospace != null)
+                    wrapper = ProportionalWordWrapper.Monospace;
+                else if (fontSize > 0)
+                    wrapper = ProportionalWordWrapper.GetForSize(fontSize + SharedConstants.FONT_HEIGHT_INCREASE);
+                else
+                    wrapper = ProportionalWordWrapper.Default;
                 text = wrapper.Wrap(text, controlCodeRegex, "<br>");
             }
 

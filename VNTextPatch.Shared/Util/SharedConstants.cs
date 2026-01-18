@@ -19,6 +19,8 @@ namespace VNTextPatch.Shared.Util
 
         public const string CUSTOM_FONT_FILENAME = "Nunito ExtraBold.ttf";
 
+        public const string MONOSPACE_FONT_FILENAME = "Inconsolata ExtraBold.ttf";
+
         public static readonly bool DEBUG_LOGGING = true;
 
         public const int GAME_DEFAULT_FONT_HEIGHT = 21;

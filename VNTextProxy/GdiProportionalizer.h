@@ -32,6 +32,10 @@ private:
 
     static TEXTMETRICA ConvertTextMetricWToA(const TEXTMETRICW& textMetricW);
 
+    // Helper functions for control code processing
+    static bool ProcessControlCode(const unsigned char* pos);
+    static void ApplyFontState(HDC hdc);
+
     struct EnumFontsContext
     {
         FONTENUMPROCA OriginalProc;

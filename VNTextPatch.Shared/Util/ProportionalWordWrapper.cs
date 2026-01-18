@@ -9,13 +9,22 @@ namespace VNTextPatch.Shared.Util
     internal class ProportionalWordWrapper : WordWrapper, IDisposable
     {
         private static readonly string CustomFontFilePath;
+        private static readonly string MonospaceFontFilePath;
 
         static ProportionalWordWrapper()
         {
-            CustomFontFilePath = FindCustomFontFile();
+            CustomFontFilePath = FindFontFile(SharedConstants.CUSTOM_FONT_FILENAME);
             if (CustomFontFilePath != null)
             {
                 int result = NativeMethods.AddFontResourceExW(CustomFontFilePath, NativeMethods.FR_PRIVATE, IntPtr.Zero);
+                if (result <= 0)
+                    throw new FileNotFoundException($"Failed to load custom font: {CustomFontFilePath}");
+            }
+
+            MonospaceFontFilePath = FindFontFile(SharedConstants.MONOSPACE_FONT_FILENAME);
+            if (MonospaceFontFilePath != null)
+            {
+                int result = NativeMethods.AddFontResourceExW(MonospaceFontFilePath, NativeMethods.FR_PRIVATE, IntPtr.Zero);
                 if (result <= 0)
                     throw new FileNotFoundException($"Failed to load custom font: {CustomFontFilePath}");
             }
@@ -37,20 +46,32 @@ namespace VNTextPatch.Shared.Util
                 _fontBold,
                 _defaultLineWidth
             );
+
+            string monospaceFontName = Path.GetFileNameWithoutExtension(SharedConstants.MONOSPACE_FONT_FILENAME);
+            Monospace = new ProportionalWordWrapper(
+                monospaceFontName,
+                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + SharedConstants.FONT_HEIGHT_INCREASE,
+                false,
+                _defaultLineWidth
+            );
+
         }
 
-        private static string FindCustomFontFile()
+        private static string FindFontFile(string filename, bool required = true)
         {
             string cwd = Directory.GetCurrentDirectory();
-            string fontPath = Path.Combine(cwd, SharedConstants.CUSTOM_FONT_FILENAME);
+            string fontPath = Path.Combine(cwd, filename);
             if (File.Exists(fontPath))
                 return fontPath;
 
-            throw new FileNotFoundException($"{SharedConstants.CUSTOM_FONT_FILENAME} not found in {cwd}");
+            if (required)
+                throw new FileNotFoundException($"{filename} not found in {cwd}");
+            return null;
         }
 
         public static readonly ProportionalWordWrapper Default;
         public static readonly ProportionalWordWrapper Secondary;
+        public static readonly ProportionalWordWrapper Monospace;
 
         private static readonly Dictionary<int, ProportionalWordWrapper> _sizeCache = new Dictionary<int, ProportionalWordWrapper>();
         private static readonly string _fontName;

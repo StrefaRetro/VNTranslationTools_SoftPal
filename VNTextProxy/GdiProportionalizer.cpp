@@ -402,6 +402,7 @@ BOOL GdiProportionalizer::DeleteObjectHook(HGDIOBJ obj)
     totalAdvOut = 0;
     Italic = false;
     Bold = false;
+    Monospace = false;
 
     Font* pFont = FontManager.GetFont(static_cast<HFONT>(obj));
     if (pFont != nullptr)
@@ -624,6 +625,55 @@ static int GetKerningAdjustment(HDC hdc, SCRIPT_CACHE* psc, wchar_t c1, wchar_t 
     return wPair - (w1 + w2);
 }
 
+// Helper: Check for control codes at current position and update font state flags
+// Returns true if any font-affecting control code was found
+bool GdiProportionalizer::ProcessControlCode(const unsigned char* pos)
+{
+    bool fontChanged = false;
+
+    if (!strncmp((const char*)pos, "<i>", 3) && Italic != true) {
+        Italic = true;
+        fontChanged = true;
+    }
+    if (!strncmp((const char*)pos, "</i>", 4) && Italic != false) {
+        Italic = false;
+        fontChanged = true;
+    }
+    if (!strncmp((const char*)pos, "<b>", 3) && Bold != true) {
+        Bold = true;
+        fontChanged = true;
+    }
+    if (!strncmp((const char*)pos, "</b>", 4) && Bold != false) {
+        Bold = false;
+        fontChanged = true;
+    }
+    if (!strncmp((const char*)pos, "<monospace>", 11) && Monospace != true) {
+        Monospace = true;
+        fontChanged = true;
+    }
+    if (!strncmp((const char*)pos, "</monospace>", 12) && Monospace != false) {
+        Monospace = false;
+        fontChanged = true;
+    }
+
+    return fontChanged;
+}
+
+// Helper: Apply current font state to HDC
+void GdiProportionalizer::ApplyFontState(HDC hdc)
+{
+    Font* pFont = CurrentFonts[hdc];
+    if (pFont != nullptr)
+    {
+        if (Monospace && !MonospaceFontName.empty()) {
+            pFont = FontManager.FetchFont(MonospaceFontName, pFont->GetHeight(), Bold, Italic, Underline);
+        } else if (!CustomFontName.empty()) {
+            pFont = FontManager.FetchFont(CustomFontName, pFont->GetHeight(), Bold, Italic, Underline);
+        }
+        SelectObject(hdc, pFont->GetGdiHandle());
+    }
+}
+
 DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuFormat, LPGLYPHMETRICS lpgm, DWORD cjBuffer, LPVOID pvBuffer, MAT2* lpmat2)
 {
     string sjisStr;
@@ -633,6 +683,29 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
         uChar >>= 8;
     }
     UINT ch = SJISCharToUnicode(sjisStr, false);
+
+    // Process control codes at the very beginning of text (before first character is rendered)
+    if (currentTextOffset == 0) {
+        const unsigned char* textString = PALGrabCurrentText::get();
+        const unsigned char* scanPos = textString;
+        bool fontChanged = false;
+
+        while (*scanPos == '<') {
+            fontChanged |= ProcessControlCode(scanPos);
+            // Skip past this control code, updating currentTextOffset
+            const unsigned char* prevPos;
+            do {
+                int charLen = sjis_next_char(scanPos) - scanPos;
+                currentTextOffset += charLen;
+                prevPos = scanPos;
+                scanPos += charLen;
+            } while (*prevPos != '>' && *scanPos != '\0');
+        }
+
+        if (fontChanged) {
+            ApplyFontState(hdc);
+        }
+    }
 
     DWORD ret = GetGlyphOutlineW(hdc, ch, fuFormat, lpgm, cjBuffer, pvBuffer, lpmat2);
 
@@ -711,22 +784,7 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
                 }
             #endif
 
-            if (!strncmp((const char*) currentChar, "<i>", strlen("<i>")) && Italic != true) {
-                Italic = true;
-                fontChanged = true;
-            }
-            if (!strncmp((const char*) currentChar, "</i>", strlen("</i>")) && Italic != false) {
-                Italic = false;
-                fontChanged = true;
-            }
-            if (!strncmp((const char*)currentChar, "<b>", strlen("<b>")) && Bold != true) {
-                Bold = true;
-                fontChanged = true;
-            }
-            if (!strncmp((const char*)currentChar, "</b>", strlen("</b>")) && Bold != false) {
-                Bold = false;
-                fontChanged = true;
-            }
+            fontChanged |= ProcessControlCode(currentChar);
 
             const unsigned char* previousChar;
             do {
@@ -764,9 +822,13 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
             }
 #endif
             Font* pFont = CurrentFonts[hdc];
-            if (pFont != nullptr && !CustomFontName.empty())
+            if (pFont != nullptr)
             {
-                pFont = FontManager.FetchFont(CustomFontName, pFont->GetHeight(), Bold, Italic, Underline);
+                if (Monospace && !MonospaceFontName.empty()) {
+                    pFont = FontManager.FetchFont(MonospaceFontName, pFont->GetHeight(), Bold, Italic, Underline);
+                } else if (!CustomFontName.empty()) {
+                    pFont = FontManager.FetchFont(CustomFontName, pFont->GetHeight(), Bold, Italic, Underline);
+                }
                 SelectObjectHook(hdc, pFont->GetGdiHandle());
             }
         }

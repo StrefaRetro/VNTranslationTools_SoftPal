@@ -8,6 +8,7 @@ public:
     
     static inline std::wstring CustomFontName{};
     static inline std::wstring CustomFontFilePath{};
+    static inline std::wstring MonospaceFontName{};
     static inline std::wstring LastFontName{};
     static inline int LastLineEnd;
 
@@ -18,10 +19,12 @@ protected:
     static inline bool Bold{};
     static inline bool Italic{};
     static inline bool Underline{};
+    static inline bool Monospace{};
 
 private:
     typedef BOOL (__stdcall GetFontResourceInfoW_t)(const wchar_t* lpszFilename, LPDWORD cbBuffer, LPVOID lpBuffer, DWORD dwQueryType);
     static std::wstring LoadCustomFont();
+    static std::wstring LoadMonospaceFont();
     static std::wstring FindCustomFontFile();
     static bool HandleFormattingCode(wchar_t c);
 };
