@@ -21,7 +21,7 @@ namespace VNTextPatch.Shared.Util
 
         public const string MONOSPACE_FONT_FILENAME = "Inconsolata ExtraBold.ttf";
 
-        public static readonly bool DEBUG_LOGGING = true;
+        public static readonly bool DEBUG_LOGGING = false;
 
         public const int GAME_DEFAULT_FONT_HEIGHT = 21;
 
@@ -59,6 +59,8 @@ namespace VNTextPatch.Shared.Util
 
         public const char MAP_SJIS_7 = 'ｲ';
 
+        public const char MAP_SJIS_8 = 'ﾙ';
+
         public const char MAP_UNICODE_1 = '%';
 
         public const char MAP_UNICODE_2 = '“';
@@ -72,6 +74,8 @@ namespace VNTextPatch.Shared.Util
         public const char MAP_UNICODE_6 = 'é';
 
         public const char MAP_UNICODE_7 = '♪';
+
+        public const char MAP_UNICODE_8 = '♥';
 
     }
 }

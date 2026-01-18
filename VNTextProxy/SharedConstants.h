@@ -4,7 +4,7 @@
 // This file is the single source of truth.
 // C# constants are auto-generated from this file via SharedConstants.tt
 
-#define DEBUG_LOGGING 1
+#define DEBUG_LOGGING 0
 
 // Expected original game values
 #define JAPANESE_FONT_NAME L"MS Gothic"
@@ -64,3 +64,5 @@
 #define MAP_UNICODE_6 u'é'
 #define MAP_SJIS_7 'ｲ'
 #define MAP_UNICODE_7 u'♪'
+#define MAP_SJIS_8 'ﾙ'
+#define MAP_UNICODE_8 u'♥'

@@ -557,6 +557,8 @@ static UINT SJISCharToUnicode(const string& sjisStr, bool mapPipeToSpace) {
         ch = MAP_UNICODE_6; break;
     case MAP_SJIS_7:
         ch = MAP_UNICODE_7; break;
+    case MAP_SJIS_8:
+        ch = MAP_UNICODE_8; break;
     }
 
     if (mapPipeToSpace && ch == MAP_SPACE_CHARACTER) {
@@ -795,19 +797,9 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
             } while (*previousChar != '>' && *currentChar != '\0');
         }
 
-        // Check if next character is music note - switch to MS Gothic for that character
-        int nextSjisCharLength = sjis_next_char(currentChar) - currentChar;
-        string nextSjisStr((const char*)currentChar, nextSjisCharLength);
-        UINT nextCh = SJISCharToUnicode(nextSjisStr, false);
-        if (nextCh == MAP_UNICODE_7) {
-            Font* pFont = CurrentFonts[hdc];
-            if (pFont != nullptr) {
-                Font* msGothic = FontManager.FetchFont(JAPANESE_FONT_NAME, GAME_DEFAULT_FONT_HEIGHT, false, false, false);
-                SelectObject(hdc, msGothic->GetGdiHandle());
-            }
-        }
-        else if (ch == MAP_UNICODE_7) {
-            // Just finished rendering music note - restore normal font
+
+        if (ch == MAP_UNICODE_7 || ch == MAP_UNICODE_8) {
+            // Just finished rendering music note or heart - restore normal font
             fontChanged = true;
         }
 
@@ -830,6 +822,18 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
                     pFont = FontManager.FetchFont(CustomFontName, pFont->GetHeight(), Bold, Italic, Underline);
                 }
                 SelectObjectHook(hdc, pFont->GetGdiHandle());
+            }
+        }
+
+        // Check if next character is music note - switch to a symbol font for that character
+        int nextSjisCharLength = sjis_next_char(currentChar) - currentChar;
+        string nextSjisStr((const char*)currentChar, nextSjisCharLength);
+        UINT nextCh = SJISCharToUnicode(nextSjisStr, false);
+        if (nextCh == MAP_UNICODE_7 || nextCh == MAP_UNICODE_8) {
+            Font* pFont = CurrentFonts[hdc];
+            if (pFont != nullptr) {
+                Font* segoeUI = FontManager.FetchFont(L"Segoe UI Symbol", pFont->GetHeight(), false, false, false);
+                SelectObject(hdc, segoeUI->GetGdiHandle());
             }
         }
     }

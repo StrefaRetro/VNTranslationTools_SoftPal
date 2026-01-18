@@ -137,6 +137,7 @@ namespace VNTextPatch.Shared.Scripts.Softpal
             text = text.Replace("＆", "&"); // 0xff06 (fullwidth ampersand) is intended to be ASCII ampersand
             text = text.Replace("—", "―");  // 0x8213 (horizontal bar) is intended to be em-dash 0x8212
 
+            text = text.Replace("%0", $@"{SharedConstants.MAP_UNICODE_8}"); // Softpal's heart symbol pseudo-control code is complicated to support so just replace it with a Unicode heart
             text = text.Replace("…", "..."); // ellipsis replacement
 
             text = text.Replace("\r\n", "<br>");
@@ -164,6 +165,7 @@ namespace VNTextPatch.Shared.Scripts.Softpal
             text = text.Replace(SharedConstants.MAP_UNICODE_5, SharedConstants.MAP_SJIS_5);
             text = text.Replace(SharedConstants.MAP_UNICODE_6, SharedConstants.MAP_SJIS_6);
             text = text.Replace(SharedConstants.MAP_UNICODE_7, SharedConstants.MAP_SJIS_7);
+            text = text.Replace(SharedConstants.MAP_UNICODE_8, SharedConstants.MAP_SJIS_8);
 
             text = text.Replace(' ', SharedConstants.MAP_SPACE_CHARACTER);
 
