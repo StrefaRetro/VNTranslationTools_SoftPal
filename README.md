@@ -6,7 +6,7 @@ I also improved the behavior of VNTextProxy with SoftPal, particularly with resp
 Basic instructions to use these tools to translate a Softpal game:
 1. Using [GARBro](https://github.com/morkt/GARbro), extract the game's `script.src`, `text.dat` and `point.dat` from `data.pac`.  I suggest putting them in a subdirectory called `source\`.
 2. [Download](https://github.com/alexelias/VNTranslationTools_Softpal/releases) the latest release of this fork.
-   * Extract the zip into the root directory of the game. Note that is especially required that `winmm.dll` (the VNTextProxy) be present in the root directory of the game.
+   * Extract the zip into the root directory of the game. Note that is especially required that `winmm.dll` (the VNTextProxy) and the TTF font files be present in the root directory of the game.
 3. To extract the script, open a terminal, `cd` into the root directory of the game, and run `VNTextPatch\VNTextPatch.exe extractlocal source\script.src test.xlsx`
 4. It is safe to import this `xlsx` into a Google Doc for collaborative translation. If you do that, then at insertion time, you can either use VNTranslationTools' native Google Docs insertion support, or simply export it back out to another `xlsx` file.
 5. Write your translated names in the 3rd column of the sheet, and the translated messages in the 4th column of the sheet. In this fork, columns after the 4th will be ignored, so use them
