@@ -1,0 +1,15 @@
+{
+  "debugLogging": false,
+  "customFontName": "Nunito ExtraBold",
+  "customFontFilename": "Nunito ExtraBold.ttf",
+  "monospaceFontFilename": "Inconsolata ExtraBold.ttf",
+  "fontHeightIncrease": 6,
+  "fontYSpacingBetweenLines": 7,
+  "fontYTopPosDecrease": 4,
+  "proportionalFontBold": false,
+  "proportionalLineWidth": 545,
+  "maxLineWidth": 570,
+  "numLinesWarnThreshold": 4,
+  "borderlessFullscreen": true,
+  "fullscreenVideoFix": false
+}

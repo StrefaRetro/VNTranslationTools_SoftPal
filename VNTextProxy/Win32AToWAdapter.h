@@ -39,7 +39,10 @@ private:
     static LSTATUS __stdcall RegQueryValueExAHook(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
     static LSTATUS __stdcall RegSetValueExAHook(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE* lpData, DWORD cbData);
     
+    static HWND __stdcall CreateWindowExAHook(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
     static LONG __stdcall SetWindowLongAHook(HWND hWnd, int nIndex, LONG dwNewLong);
+    static BOOL __stdcall SetWindowPosHook(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
+    static BOOL __stdcall ShowWindowHook(HWND hWnd, int nCmdShow);
     static BOOL __stdcall DestroyWindowHook(HWND hWnd);
     static void __stdcall HandleImeCompositionEnded(const std::wstring& text);
     static BOOL __stdcall PeekMessageAHook(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
@@ -56,6 +59,10 @@ private:
     static BOOL __stdcall EnumDisplaySettingsAHook(LPCSTR lpszDeviceName, DWORD iModeNum, DEVMODEA* lpDevMode);
     static LONG __stdcall ChangeDisplaySettingsAHook(DEVMODEA* lpDevMode, DWORD dwFlags);
     static LONG __stdcall ChangeDisplaySettingsExAHook(LPCSTR lpszDeviceName, DEVMODEA* lpDevMode, HWND hwnd, DWORD dwflags, LPVOID lParam);
+
+    static BOOL __stdcall ClipCursorHook(const RECT* lpRect);
+    static BOOL __stdcall GetCursorPosHook(LPPOINT lpPoint);
+    static BOOL __stdcall SetCursorPosHook(int X, int Y);
 
     static HRESULT __stdcall DirectDrawEnumerateAHook(LPDDENUMCALLBACKA lpCallback, LPVOID lpContext);
     static BOOL __stdcall DirectDrawEnumerateCallback(GUID* pGuid, LPSTR pszDriverName, LPSTR pszDriverDescription, LPVOID pContext);

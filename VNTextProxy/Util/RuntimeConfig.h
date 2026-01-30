@@ -12,6 +12,8 @@ public:
 
     // Accessors (call only after Load())
     static bool DebugLogging();
+    static bool BorderlessFullscreen();
+    static bool FullscreenVideoFix();
     static const std::wstring& CustomFontName();
     static const std::wstring& CustomFontFilename();
     static const std::wstring& MonospaceFontFilename();
@@ -26,6 +28,8 @@ public:
 private:
     static inline bool _loaded = false;
     static inline bool _debugLogging;
+    static inline bool _borderlessFullscreen;
+    static inline bool _fullscreenVideoFix;
     static inline std::wstring _customFontName;
     static inline std::wstring _customFontFilename;
     static inline std::wstring _monospaceFontFilename;

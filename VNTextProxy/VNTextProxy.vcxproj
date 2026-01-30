@@ -109,6 +109,8 @@
     <ClInclude Include="ImportHooker.h" />
     <ClInclude Include="LocaleEmulator.h" />
     <ClInclude Include="PALHooks.h" />
+    <ClInclude Include="D3D9Hooks.h" />
+    <ClInclude Include="BorderlessState.h" />
     <ClInclude Include="Patches\BabelPatch.h" />
     <ClInclude Include="Patches\EnginePatches.h" />
     <ClInclude Include="PE\PE.h" />
@@ -139,6 +141,7 @@
     <ClCompile Include="ImportHooker.cpp" />
     <ClCompile Include="LocaleEmulator.cpp" />
     <ClCompile Include="PALHooks.cpp" />
+    <ClCompile Include="D3D9Hooks.cpp" />
     <ClCompile Include="Patches\BabelPatch.cpp" />
     <ClCompile Include="Patches\EnginePatches.cpp" />
     <ClCompile Include="PE\PE.cpp" />

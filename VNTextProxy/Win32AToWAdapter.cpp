@@ -1,6 +1,26 @@
 #include "pch.h"
+#include "SharedConstants.h"
+#include "BorderlessState.h"
 
 using namespace std;
+
+static FILE* g_winApiLogFile = nullptr;
+static void winapi_log(const char* format, ...)
+{
+    if (!RuntimeConfig::DebugLogging())
+        return;
+    if (!g_winApiLogFile)
+        g_winApiLogFile = _fsopen("./WinAPIhooks.log", "w", _SH_DENYNO);
+    if (g_winApiLogFile)
+    {
+        va_list args;
+        va_start(args, format);
+        vfprintf(g_winApiLogFile, format, args);
+        fprintf(g_winApiLogFile, "\n");
+        va_end(args);
+        fflush(g_winApiLogFile);
+    }
+}
 
 void Win32AToWAdapter::Init()
 {
@@ -41,7 +61,10 @@ void Win32AToWAdapter::Init()
             { "RegQueryValueExA", RegQueryValueExAHook },
             { "RegSetValueExA", RegSetValueExAHook },
 
+            { "CreateWindowExA", CreateWindowExAHook },
             { "SetWindowLongA", SetWindowLongAHook },
+            { "SetWindowPos", SetWindowPosHook },
+            { "ShowWindow", ShowWindowHook },
             { "DestroyWindow", DestroyWindowHook },
             { "PeekMessageA", PeekMessageAHook },
             { "GetMessageA", GetMessageAHook },
@@ -57,6 +80,10 @@ void Win32AToWAdapter::Init()
             { "EnumDisplaySettingsA", EnumDisplaySettingsAHook },
             { "ChangeDisplaySettingsA", ChangeDisplaySettingsAHook },
             { "ChangeDisplaySettingsExA", ChangeDisplaySettingsExAHook },
+
+            { "ClipCursor", ClipCursorHook },
+            { "GetCursorPos", GetCursorPosHook },
+            { "SetCursorPos", SetCursorPosHook },
 
             { "DirectDrawEnumerateA", DirectDrawEnumerateAHook },
             { "DirectDrawEnumerateExA", DirectDrawEnumerateExAHook },
@@ -440,14 +467,99 @@ LSTATUS Win32AToWAdapter::RegSetValueExAHook(HKEY hKey, LPCSTR lpValueName, DWOR
     return RegSetValueExW(hKey, lpValueName != nullptr ? SjisTunnelEncoding::Decode(lpValueName).c_str() : nullptr, 0, dwType, (BYTE*)dataW.data(), dataW.size() * sizeof(wchar_t));
 }
 
+HWND Win32AToWAdapter::CreateWindowExAHook(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName,
+    DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
+{
+    winapi_log("CreateWindowExA: class=%s, title=%s, style=0x%x, exStyle=0x%x, pos=(%d,%d), size=%dx%d",
+        lpClassName ? lpClassName : "(null)",
+        lpWindowName ? lpWindowName : "(null)",
+        dwStyle, dwExStyle, X, Y, nWidth, nHeight);
+
+    HWND hWnd = CreateWindowExW(
+        dwExStyle,
+        lpClassName ? SjisTunnelEncoding::Decode(lpClassName).c_str() : nullptr,
+        lpWindowName ? SjisTunnelEncoding::Decode(lpWindowName).c_str() : nullptr,
+        dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+
+    winapi_log("  -> HWND=0x%p", hWnd);
+
+    // Track the main game window (FlyableHeart class with no parent)
+    if (lpClassName && hWndParent == nullptr && BorderlessState::g_mainGameWindow == nullptr)
+    {
+        // Check if this looks like the main game window (not a child or popup)
+        if (dwStyle & WS_OVERLAPPEDWINDOW || dwStyle & WS_POPUP)
+        {
+            BorderlessState::g_mainGameWindow = hWnd;
+            winapi_log("  [Borderless] Tracking as main game window");
+        }
+    }
+
+    return hWnd;
+}
+
 LONG Win32AToWAdapter::SetWindowLongAHook(HWND hWnd, int nIndex, LONG dwNewLong)
 {
+    const char* indexName = "unknown";
+    switch (nIndex) {
+        case GWL_STYLE: indexName = "GWL_STYLE"; break;
+        case GWL_EXSTYLE: indexName = "GWL_EXSTYLE"; break;
+        case GWL_WNDPROC: indexName = "GWL_WNDPROC"; break;
+        case GWL_USERDATA: indexName = "GWL_USERDATA"; break;
+    }
+    winapi_log("SetWindowLongA: hWnd=0x%p, nIndex=%s(%d), dwNewLong=0x%x",
+        hWnd, indexName, nIndex, dwNewLong);
+
+    // Block window style changes when borderless mode is active (we manage the window ourselves)
+    if (BorderlessState::g_borderlessActive && hWnd == BorderlessState::g_mainGameWindow)
+    {
+        if (nIndex == GWL_STYLE || nIndex == GWL_EXSTYLE)
+        {
+            winapi_log("  [Borderless] BLOCKED style change");
+            return GetWindowLongA(hWnd, nIndex);  // Return current value as if it succeeded
+        }
+    }
+
     // Manually keep track of window procedures as we can't rely on GetWindowLong() to give us the real one
     // (may return a fake value for use with CallWindowProc)
     if (nIndex == GWL_WNDPROC)
         WindowProcs[hWnd] = (WNDPROC)dwNewLong;
 
     return SetWindowLongA(hWnd, nIndex, dwNewLong);
+}
+
+BOOL Win32AToWAdapter::SetWindowPosHook(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags)
+{
+    winapi_log("SetWindowPos: hWnd=0x%p, pos=(%d,%d), size=%dx%d, flags=0x%x",
+        hWnd, X, Y, cx, cy, uFlags);
+
+    // Block window position/size changes when borderless mode is active (we manage this ourselves)
+    if (BorderlessState::g_borderlessActive && hWnd == BorderlessState::g_mainGameWindow)
+    {
+        winapi_log("  [Borderless] BLOCKED position/size change");
+        return TRUE;  // Pretend it succeeded
+    }
+
+    return SetWindowPos(hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
+}
+
+BOOL Win32AToWAdapter::ShowWindowHook(HWND hWnd, int nCmdShow)
+{
+    const char* cmdName = "unknown";
+    switch (nCmdShow) {
+        case SW_HIDE: cmdName = "SW_HIDE"; break;
+        case SW_SHOWNORMAL: cmdName = "SW_SHOWNORMAL"; break;
+        case SW_SHOWMINIMIZED: cmdName = "SW_SHOWMINIMIZED"; break;
+        case SW_SHOWMAXIMIZED: cmdName = "SW_SHOWMAXIMIZED"; break;
+        case SW_SHOWNOACTIVATE: cmdName = "SW_SHOWNOACTIVATE"; break;
+        case SW_SHOW: cmdName = "SW_SHOW"; break;
+        case SW_MINIMIZE: cmdName = "SW_MINIMIZE"; break;
+        case SW_SHOWMINNOACTIVE: cmdName = "SW_SHOWMINNOACTIVE"; break;
+        case SW_SHOWNA: cmdName = "SW_SHOWNA"; break;
+        case SW_RESTORE: cmdName = "SW_RESTORE"; break;
+    }
+    winapi_log("ShowWindow: hWnd=0x%p, nCmdShow=%s(%d)", hWnd, cmdName, nCmdShow);
+
+    return ShowWindow(hWnd, nCmdShow);
 }
 
 BOOL Win32AToWAdapter::DestroyWindowHook(HWND hWnd)
@@ -682,25 +794,101 @@ LONG Win32AToWAdapter::ChangeDisplaySettingsExAHook(LPCSTR lpszDeviceName, DEVMO
 {
     if (lpDevMode != nullptr)
     {
+        winapi_log("ChangeDisplaySettingsExA: device=%s, %dx%d, %d bpp, %d Hz, flags=0x%x",
+            lpszDeviceName ? lpszDeviceName : "(null)",
+            lpDevMode->dmPelsWidth, lpDevMode->dmPelsHeight,
+            lpDevMode->dmBitsPerPel, lpDevMode->dmDisplayFrequency, dwflags);
+
+        // Block display mode change when borderless mode is active
+        if (BorderlessState::g_borderlessActive)
+        {
+            winapi_log("  [Borderless] BLOCKED - returning DISP_CHANGE_SUCCESSFUL without changing mode");
+            return DISP_CHANGE_SUCCESSFUL;
+        }
+
         DEVMODEW devModeW = ConvertDevModeAToW(*lpDevMode);
-        return ChangeDisplaySettingsExW(
+        LONG result = ChangeDisplaySettingsExW(
             lpszDeviceName != nullptr ? SjisTunnelEncoding::Decode(lpszDeviceName).c_str() : nullptr,
             &devModeW,
             hwnd,
             dwflags,
             lParam
         );
+        winapi_log("  -> result=%d", result);
+        return result;
     }
     else
     {
-        return ChangeDisplaySettingsExW(
+        winapi_log("ChangeDisplaySettingsExA: device=%s, lpDevMode=NULL (restore), flags=0x%x",
+            lpszDeviceName ? lpszDeviceName : "(null)", dwflags);
+
+        // Also block restore when borderless (game is returning to windowed, we handle this)
+        if (BorderlessState::g_borderlessActive)
+        {
+            winapi_log("  [Borderless] BLOCKED restore - returning DISP_CHANGE_SUCCESSFUL");
+            return DISP_CHANGE_SUCCESSFUL;
+        }
+
+        LONG result = ChangeDisplaySettingsExW(
             lpszDeviceName != nullptr ? SjisTunnelEncoding::Decode(lpszDeviceName).c_str() : nullptr,
             nullptr,
             hwnd,
             dwflags,
             lParam
         );
+        winapi_log("  -> result=%d", result);
+        return result;
     }
+}
+
+BOOL Win32AToWAdapter::ClipCursorHook(const RECT* lpRect)
+{
+    if (BorderlessState::g_borderlessActive && lpRect != nullptr)
+    {
+        // Transform game-space clip rect to screen-space
+        RECT screenRect;
+        BorderlessState::GameRectToScreen(*lpRect, screenRect);
+
+        winapi_log("ClipCursor: game=(%d,%d)-(%d,%d) -> screen=(%d,%d)-(%d,%d)",
+            lpRect->left, lpRect->top, lpRect->right, lpRect->bottom,
+            screenRect.left, screenRect.top, screenRect.right, screenRect.bottom);
+
+        return ClipCursor(&screenRect);
+    }
+
+    // Not in borderless mode, pass through
+    return ClipCursor(lpRect);
+}
+
+BOOL Win32AToWAdapter::GetCursorPosHook(LPPOINT lpPoint)
+{
+    BOOL result = GetCursorPos(lpPoint);
+
+    if (result && BorderlessState::g_borderlessActive && lpPoint != nullptr)
+    {
+        // Transform screen coordinates to game coordinates
+        int gameX, gameY;
+        BorderlessState::ScreenToGame(lpPoint->x, lpPoint->y, gameX, gameY);
+
+        lpPoint->x = gameX;
+        lpPoint->y = gameY;
+    }
+
+    return result;
+}
+
+BOOL Win32AToWAdapter::SetCursorPosHook(int X, int Y)
+{
+    if (BorderlessState::g_borderlessActive)
+    {
+        // Transform game coordinates to screen coordinates
+        int screenX, screenY;
+        BorderlessState::GameToScreen(X, Y, screenX, screenY);
+
+        return SetCursorPos(screenX, screenY);
+    }
+
+    return SetCursorPos(X, Y);
 }
 
 HRESULT Win32AToWAdapter::DirectDrawEnumerateAHook(LPDDENUMCALLBACKA lpCallback, LPVOID lpContext)

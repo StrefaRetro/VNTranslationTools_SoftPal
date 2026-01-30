@@ -8,3 +8,7 @@ namespace PALGrabCurrentText {
 namespace PALVideoFix {
 	bool Install();
 }
+
+namespace DirectShowVideoScale {
+	bool Install();
+}

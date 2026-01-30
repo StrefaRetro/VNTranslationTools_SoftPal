@@ -65,6 +65,10 @@ void RuntimeConfig::Load()
         _proportionalLineWidth = config.at("proportionalLineWidth").get<int>();
         _maxLineWidth = config.at("maxLineWidth").get<int>();
         _numLinesWarnThreshold = config.at("numLinesWarnThreshold").get<int>();
+
+        // Optional settings with defaults
+        _borderlessFullscreen = config.value("borderlessFullscreen", true);
+        _fullscreenVideoFix = config.value("fullscreenVideoFix", true);
     }
     catch (const json::exception& e)
     {
@@ -96,6 +100,8 @@ void RuntimeConfig::Load()
 }
 
 bool RuntimeConfig::DebugLogging() { return _debugLogging; }
+bool RuntimeConfig::BorderlessFullscreen() { return _borderlessFullscreen; }
+bool RuntimeConfig::FullscreenVideoFix() { return _fullscreenVideoFix; }
 const std::wstring& RuntimeConfig::CustomFontName() { return _customFontName; }
 const std::wstring& RuntimeConfig::CustomFontFilename() { return _customFontFilename; }
 const std::wstring& RuntimeConfig::MonospaceFontFilename() { return _monospaceFontFilename; }

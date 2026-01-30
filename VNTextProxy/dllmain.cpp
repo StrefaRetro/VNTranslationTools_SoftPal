@@ -1,6 +1,7 @@
-﻿#include "pch.h"
+#include "pch.h"
 
 #include "PALHooks.h"
+#include "D3D9Hooks.h"
 #include <sstream>
 
 void* OriginalEntryPoint;
@@ -70,7 +71,12 @@ void Initialize()
     EnginePatches::Init();
 
     PALGrabCurrentText::Install();
-    PALVideoFix::Install();
+    if (RuntimeConfig::FullscreenVideoFix())
+        PALVideoFix::Install();
+    if (RuntimeConfig::BorderlessFullscreen()) {
+        D3D9Hooks::Install();
+        DirectShowVideoScale::Install();
+    }
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
