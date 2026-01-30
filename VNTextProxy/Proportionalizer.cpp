@@ -1,7 +1,14 @@
 ﻿#include "pch.h"
 #include "SharedConstants.h"
+#include <sstream>
 
 using namespace std;
+
+static void ShowErrorAndExit(const wstring& message)
+{
+    MessageBoxW(nullptr, message.c_str(), L"VNTranslationTools Error", MB_OK | MB_ICONERROR);
+    ExitProcess(1);
+}
 
 void Proportionalizer::Init()
 {
@@ -87,13 +94,26 @@ bool Proportionalizer::HandleFormattingCode(wchar_t c)
 
 wstring Proportionalizer::LoadCustomFont()
 {
+    wstring expectedFontFilename = RuntimeConfig::CustomFontFilename();
     CustomFontFilePath = FindCustomFontFile();
-    if (CustomFontFilePath.empty())
-        return L"";
+
+    // Check if the custom font file was found (not falling back to Arial)
+    if (CustomFontFilePath.find(expectedFontFilename) == wstring::npos)
+    {
+        wstringstream ss;
+        ss << L"Custom font file not found: " << expectedFontFilename << L"\n\n";
+        ss << L"Please ensure the font file is in the game directory.";
+        ShowErrorAndExit(ss.str());
+    }
 
     int numFonts = AddFontResourceExW(CustomFontFilePath.c_str(), FR_PRIVATE, nullptr);
     if (numFonts == 0)
-        return L"";
+    {
+        wstringstream ss;
+        ss << L"Failed to load custom font: " << CustomFontFilePath << L"\n\n";
+        ss << L"The font file may be corrupted or in an unsupported format.";
+        ShowErrorAndExit(ss.str());
+    }
 
     wstring fontFileName = CustomFontFilePath;
     fontFileName.erase(0, fontFileName.rfind(L'\\') + 1);
@@ -103,20 +123,31 @@ wstring Proportionalizer::LoadCustomFont()
 
 wstring Proportionalizer::LoadMonospaceFont()
 {
-    // Build path: same folder as exe + MONOSPACE_FONT_FILENAME
+    // Build path: same folder as exe + monospace font filename from config
     wchar_t folderPath[MAX_PATH];
     GetModuleFileName(GetModuleHandle(nullptr), folderPath, sizeof(folderPath) / sizeof(wchar_t));
     wchar_t* pLastSlash = wcsrchr(folderPath, L'\\');
     if (pLastSlash != nullptr)
         *pLastSlash = L'\0';
 
-    wstring fontPath = wstring(folderPath) + L"\\" + RuntimeConfig::MonospaceFontFilename();
+    wstring monospaceFontFilename = RuntimeConfig::MonospaceFontFilename();
+    wstring fontPath = wstring(folderPath) + L"\\" + monospaceFontFilename;
     if (GetFileAttributesW(fontPath.c_str()) == INVALID_FILE_ATTRIBUTES)
-        return L"";
+    {
+        wstringstream ss;
+        ss << L"Monospace font file not found: " << monospaceFontFilename << L"\n\n";
+        ss << L"Please ensure the font file is in the game directory.";
+        ShowErrorAndExit(ss.str());
+    }
 
     int numFonts = AddFontResourceExW(fontPath.c_str(), FR_PRIVATE, nullptr);
     if (numFonts == 0)
-        return L"";
+    {
+        wstringstream ss;
+        ss << L"Failed to load monospace font: " << fontPath << L"\n\n";
+        ss << L"The font file may be corrupted or in an unsupported format.";
+        ShowErrorAndExit(ss.str());
+    }
 
     // Extract font name from filename (remove path and extension)
     wstring fontFileName = fontPath;

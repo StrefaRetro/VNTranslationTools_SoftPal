@@ -1,8 +1,34 @@
 ﻿#include "pch.h"
 
 #include "PALHooks.h"
+#include <sstream>
 
 void* OriginalEntryPoint;
+
+static void ShowErrorAndExit(const std::wstring& message)
+{
+    MessageBoxW(nullptr, message.c_str(), L"VNTranslationTools Error", MB_OK | MB_ICONERROR);
+    ExitProcess(1);
+}
+
+static void CheckRequiredDataFiles()
+{
+    const wchar_t* requiredFiles[] = {
+        L"data\\script.src",
+        L"data\\TEXT.DAT"
+    };
+
+    for (const wchar_t* filePath : requiredFiles)
+    {
+        if (GetFileAttributesW(filePath) == INVALID_FILE_ATTRIBUTES)
+        {
+            std::wstringstream ss;
+            ss << L"Required data file not found: " << filePath << L"\n\n";
+            ss << L"Please ensure you have run VNTextPatch to insert the translated script.";
+            ShowErrorAndExit(ss.str());
+        }
+    }
+}
 
 void Initialize();
 
@@ -32,6 +58,7 @@ void Initialize()
 
     SetCurrentDirectoryW(Path::GetModuleFolderPath(nullptr).c_str());
     RuntimeConfig::Load();
+    CheckRequiredDataFiles();
 
     CompilerHelper::Init();
     Win32AToWAdapter::Init();
