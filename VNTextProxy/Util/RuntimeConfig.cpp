@@ -69,7 +69,7 @@ void RuntimeConfig::Load()
         _numLinesWarnThreshold = config.at("numLinesWarnThreshold").get<int>();
         _borderlessFullscreen = config.value("borderlessFullscreen", true);
         _clipMouseCursorInBorderlessFullscreen = config.value("clipMouseCursorInBorderlessFullscreen", true);
-        _fullscreenVideoWorkaround = config.value("fullscreenVideoWorkaround", false);
+        _directX11Upscaling = config.value("directX11Upscaling", true);
     }
     catch (const json::exception& e)
     {
@@ -99,7 +99,7 @@ void RuntimeConfig::Load()
         fprintf(debugLog2, "  numLinesWarnThreshold: %d\n", _numLinesWarnThreshold);
         fprintf(debugLog2, "  borderlessFullscreen: %s\n", _borderlessFullscreen ? "true" : "false");
         fprintf(debugLog2, "  clipMouseCursorInBorderlessFullscreen: %s\n", _clipMouseCursorInBorderlessFullscreen ? "true" : "false");
-        fprintf(debugLog2, "  fullscreenVideoWorkaround: %s\n", _fullscreenVideoWorkaround ? "true" : "false");
+        fprintf(debugLog2, "  directX11Upscaling: %s\n", _directX11Upscaling ? "true" : "false");
         fclose(debugLog2);
     }
 }
@@ -108,7 +108,7 @@ bool RuntimeConfig::DebugLogging() { return _debugLogging; }
 bool RuntimeConfig::EnableFontSubstitution() { return _enableFontSubstitution; }
 bool RuntimeConfig::BorderlessFullscreen() { return _borderlessFullscreen; }
 bool RuntimeConfig::ClipMouseCursorInBorderlessFullscreen() { return _clipMouseCursorInBorderlessFullscreen; }
-bool RuntimeConfig::FullscreenVideoWorkaround() { return _fullscreenVideoWorkaround; }
+bool RuntimeConfig::DirectX11Upscaling() { return _directX11Upscaling; }
 const std::wstring& RuntimeConfig::CustomFontName() { return _customFontName; }
 const std::wstring& RuntimeConfig::CustomFontFilename() { return _customFontFilename; }
 const std::wstring& RuntimeConfig::MonospaceFontFilename() { return _monospaceFontFilename; }

@@ -110,6 +110,8 @@
     <ClInclude Include="LocaleEmulator.h" />
     <ClInclude Include="PALHooks.h" />
     <ClInclude Include="D3D9Hooks.h" />
+    <ClInclude Include="BicubicScaler.h" />
+    <ClInclude Include="CuNNyScaler.h" />
     <ClInclude Include="BorderlessState.h" />
     <ClInclude Include="Patches\BabelPatch.h" />
     <ClInclude Include="Patches\EnginePatches.h" />
@@ -142,6 +144,8 @@
     <ClCompile Include="LocaleEmulator.cpp" />
     <ClCompile Include="PALHooks.cpp" />
     <ClCompile Include="D3D9Hooks.cpp" />
+    <ClCompile Include="BicubicScaler.cpp" />
+    <ClCompile Include="CuNNyScaler.cpp" />
     <ClCompile Include="Patches\BabelPatch.cpp" />
     <ClCompile Include="Patches\EnginePatches.cpp" />
     <ClCompile Include="PE\PE.cpp" />

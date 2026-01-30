@@ -63,6 +63,7 @@ private:
     static BOOL __stdcall ClipCursorHook(const RECT* lpRect);
     static BOOL __stdcall GetCursorPosHook(LPPOINT lpPoint);
     static BOOL __stdcall SetCursorPosHook(int X, int Y);
+    static BOOL __stdcall GetClientRectHook(HWND hWnd, LPRECT lpRect);
 
     static HRESULT __stdcall DirectDrawEnumerateAHook(LPDDENUMCALLBACKA lpCallback, LPVOID lpContext);
     static BOOL __stdcall DirectDrawEnumerateCallback(GUID* pGuid, LPSTR pszDriverName, LPSTR pszDriverDescription, LPVOID pContext);

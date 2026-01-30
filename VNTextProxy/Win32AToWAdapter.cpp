@@ -84,6 +84,7 @@ void Win32AToWAdapter::Init()
             { "ClipCursor", ClipCursorHook },
             { "GetCursorPos", GetCursorPosHook },
             { "SetCursorPos", SetCursorPosHook },
+            { "GetClientRect", GetClientRectHook },
 
             { "DirectDrawEnumerateA", DirectDrawEnumerateAHook },
             { "DirectDrawEnumerateExA", DirectDrawEnumerateExAHook },
@@ -899,6 +900,27 @@ BOOL Win32AToWAdapter::SetCursorPosHook(int X, int Y)
     }
 
     return SetCursorPos(X, Y);
+}
+
+BOOL Win32AToWAdapter::GetClientRectHook(HWND hWnd, LPRECT lpRect)
+{
+    BOOL result = GetClientRect(hWnd, lpRect);
+
+    // In borderless mode, return the game resolution instead of actual window size
+    // This prevents the game from caching the large screen resolution
+    if (result && BorderlessState::g_borderlessActive && hWnd == BorderlessState::g_mainGameWindow && lpRect)
+    {
+        winapi_log("GetClientRect: hWnd=0x%p, actual=%dx%d -> returning game res %dx%d",
+            hWnd, lpRect->right, lpRect->bottom,
+            BorderlessState::g_gameWidth, BorderlessState::g_gameHeight);
+
+        lpRect->left = 0;
+        lpRect->top = 0;
+        lpRect->right = BorderlessState::g_gameWidth;
+        lpRect->bottom = BorderlessState::g_gameHeight;
+    }
+
+    return result;
 }
 
 HRESULT Win32AToWAdapter::DirectDrawEnumerateAHook(LPDDENUMCALLBACKA lpCallback, LPVOID lpContext)

@@ -74,8 +74,6 @@ void Initialize()
 
     EnginePatches::Init();
 
-    if (RuntimeConfig::FullscreenVideoWorkaround())
-        PALVideoFix::Install();
     if (RuntimeConfig::BorderlessFullscreen()) {
         D3D9Hooks::Install();
         DirectShowVideoScale::Install();

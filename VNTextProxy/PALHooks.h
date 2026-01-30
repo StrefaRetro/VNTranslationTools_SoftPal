@@ -5,10 +5,6 @@ namespace PALGrabCurrentText {
 	const unsigned char* get();
 }
 
-namespace PALVideoFix {
-	bool Install();
-}
-
 namespace DirectShowVideoScale {
 	bool Install();
 }

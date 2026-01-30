@@ -1,7 +1,7 @@
 {
   "debugLogging": true,
 
-  "enableFontSubstitution": false,
+  "enableFontSubstitution": true,
   "customFontName": "Nunito ExtraBold",
   "customFontFilename": "Nunito ExtraBold.ttf",
   "monospaceFontFilename": "Inconsolata ExtraBold.ttf",
@@ -14,6 +14,6 @@
   "numLinesWarnThreshold": 4,
 
   "borderlessFullscreen": true,
-  "clipMouseCursorInBorderlessFullscreen": false,
-  "fullscreenVideoWorkaround": false
+  "directX11Upscaling": true,
+  "clipMouseCursorInBorderlessFullscreen": false
 }

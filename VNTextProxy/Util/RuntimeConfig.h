@@ -15,7 +15,7 @@ public:
     static bool EnableFontSubstitution();
     static bool BorderlessFullscreen();
     static bool ClipMouseCursorInBorderlessFullscreen();
-    static bool FullscreenVideoWorkaround();
+    static bool DirectX11Upscaling();
     static const std::wstring& CustomFontName();
     static const std::wstring& CustomFontFilename();
     static const std::wstring& MonospaceFontFilename();
@@ -33,7 +33,7 @@ private:
     static inline bool _enableFontSubstitution;
     static inline bool _borderlessFullscreen;
     static inline bool _clipMouseCursorInBorderlessFullscreen;
-    static inline bool _fullscreenVideoWorkaround;
+    static inline bool _directX11Upscaling;
     static inline std::wstring _customFontName;
     static inline std::wstring _customFontFilename;
     static inline std::wstring _monospaceFontFilename;
