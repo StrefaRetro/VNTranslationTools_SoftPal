@@ -10,7 +10,7 @@
     string headerContent = File.ReadAllText(headerPath, Encoding.UTF8);
 
     // Parse #define statements (^ ensures line starts with #, excluding commented lines)
-    var stringDefines = Regex.Matches(headerContent, @"^#define\s+(\w+)\s+L""([^""]+)""", RegexOptions.Multiline);
+    var stringDefines = Regex.Matches(headerContent, @"^#define\s+(\w+)\s+L?""([^""]+)""", RegexOptions.Multiline);
     var intDefines = Regex.Matches(headerContent, @"^#define\s+(\w+)\s+(\d+)\s*$", RegexOptions.Multiline);
     // Char defines: 'x' (narrow) and u'x' (wide/unicode)
     var narrowCharDefines = Regex.Matches(headerContent, @"^#define\s+(\w+)\s+'([^']+)'", RegexOptions.Multiline);

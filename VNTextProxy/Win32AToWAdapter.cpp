@@ -843,17 +843,27 @@ LONG Win32AToWAdapter::ChangeDisplaySettingsExAHook(LPCSTR lpszDeviceName, DEVMO
 
 BOOL Win32AToWAdapter::ClipCursorHook(const RECT* lpRect)
 {
-    if (BorderlessState::g_borderlessActive && lpRect != nullptr)
+    if (BorderlessState::g_borderlessActive)
     {
-        // Transform game-space clip rect to screen-space
-        RECT screenRect;
-        BorderlessState::GameRectToScreen(*lpRect, screenRect);
+        if (!RuntimeConfig::ClipMouseCursorInBorderlessFullscreen())
+        {
+            // Cursor clipping disabled in config - allow cursor to move freely
+            winapi_log("ClipCursor: borderless mode, clipping disabled - unclipping cursor");
+            return ClipCursor(nullptr);
+        }
 
-        winapi_log("ClipCursor: game=(%d,%d)-(%d,%d) -> screen=(%d,%d)-(%d,%d)",
-            lpRect->left, lpRect->top, lpRect->right, lpRect->bottom,
-            screenRect.left, screenRect.top, screenRect.right, screenRect.bottom);
+        if (lpRect != nullptr)
+        {
+            // Transform game-space clip rect to screen-space
+            RECT screenRect;
+            BorderlessState::GameRectToScreen(*lpRect, screenRect);
 
-        return ClipCursor(&screenRect);
+            winapi_log("ClipCursor: game=(%d,%d)-(%d,%d) -> screen=(%d,%d)-(%d,%d)",
+                lpRect->left, lpRect->top, lpRect->right, lpRect->bottom,
+                screenRect.left, screenRect.top, screenRect.right, screenRect.bottom);
+
+            return ClipCursor(&screenRect);
+        }
     }
 
     // Not in borderless mode, pass through

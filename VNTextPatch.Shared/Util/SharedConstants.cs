@@ -13,6 +13,8 @@ namespace VNTextPatch.Shared.Util
     internal static class SharedConstants
     {
 
+        public const string RUNTIME_CONFIG_FILENAME = "VNTranslationToolsConstants.json";
+
         public const string JAPANESE_FONT_NAME = "MS Gothic";
 
         public const int GAME_DEFAULT_FONT_HEIGHT = 21;

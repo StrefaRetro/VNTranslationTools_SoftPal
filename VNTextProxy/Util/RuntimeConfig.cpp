@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "RuntimeConfig.h"
+#include "SharedConstants.h"
 #include "external/json.hpp"
 #include <fstream>
 #include <sstream>
@@ -28,7 +29,7 @@ void RuntimeConfig::Load()
     if (_loaded)
         return;
 
-    const char* configFileName = "VNTranslationToolsConstants.json";
+    const char* configFileName = RUNTIME_CONFIG_FILENAME;
 
     std::ifstream file(configFileName);
     if (!file.is_open())
@@ -54,7 +55,8 @@ void RuntimeConfig::Load()
 
     try
     {
-        _debugLogging = config.at("debugLogging").get<bool>();
+        _debugLogging = config.value("debugLogging", true);
+        _enableFontSubstitution = config.value("enableFontSubstitution", true);
         _customFontName = Utf8ToWstring(config.at("customFontName").get<std::string>());
         _customFontFilename = Utf8ToWstring(config.at("customFontFilename").get<std::string>());
         _monospaceFontFilename = Utf8ToWstring(config.at("monospaceFontFilename").get<std::string>());
@@ -65,10 +67,9 @@ void RuntimeConfig::Load()
         _proportionalLineWidth = config.at("proportionalLineWidth").get<int>();
         _maxLineWidth = config.at("maxLineWidth").get<int>();
         _numLinesWarnThreshold = config.at("numLinesWarnThreshold").get<int>();
-
-        // Optional settings with defaults
         _borderlessFullscreen = config.value("borderlessFullscreen", true);
-        _fullscreenVideoFix = config.value("fullscreenVideoFix", true);
+        _clipMouseCursorInBorderlessFullscreen = config.value("clipMouseCursorInBorderlessFullscreen", true);
+        _fullscreenVideoWorkaround = config.value("fullscreenVideoWorkaround", false);
     }
     catch (const json::exception& e)
     {
@@ -85,6 +86,7 @@ void RuntimeConfig::Load()
     if (fopen_s(&debugLog2, "winmm_dll_log.txt", "at") == 0 && debugLog2) {
         fprintf(debugLog2, "RuntimeConfig::Load() SUCCESS - Config loaded:\n");
         fprintf(debugLog2, "  debugLogging: %s\n", _debugLogging ? "true" : "false");
+        fprintf(debugLog2, "  enableFontSubstitution: %s\n", _enableFontSubstitution ? "true" : "false");
         fprintf(debugLog2, "  customFontName: %ls\n", _customFontName.c_str());
         fprintf(debugLog2, "  customFontFilename: %ls\n", _customFontFilename.c_str());
         fprintf(debugLog2, "  monospaceFontFilename: %ls\n", _monospaceFontFilename.c_str());
@@ -95,13 +97,18 @@ void RuntimeConfig::Load()
         fprintf(debugLog2, "  proportionalLineWidth: %d\n", _proportionalLineWidth);
         fprintf(debugLog2, "  maxLineWidth: %d\n", _maxLineWidth);
         fprintf(debugLog2, "  numLinesWarnThreshold: %d\n", _numLinesWarnThreshold);
+        fprintf(debugLog2, "  borderlessFullscreen: %s\n", _borderlessFullscreen ? "true" : "false");
+        fprintf(debugLog2, "  clipMouseCursorInBorderlessFullscreen: %s\n", _clipMouseCursorInBorderlessFullscreen ? "true" : "false");
+        fprintf(debugLog2, "  fullscreenVideoWorkaround: %s\n", _fullscreenVideoWorkaround ? "true" : "false");
         fclose(debugLog2);
     }
 }
 
 bool RuntimeConfig::DebugLogging() { return _debugLogging; }
+bool RuntimeConfig::EnableFontSubstitution() { return _enableFontSubstitution; }
 bool RuntimeConfig::BorderlessFullscreen() { return _borderlessFullscreen; }
-bool RuntimeConfig::FullscreenVideoFix() { return _fullscreenVideoFix; }
+bool RuntimeConfig::ClipMouseCursorInBorderlessFullscreen() { return _clipMouseCursorInBorderlessFullscreen; }
+bool RuntimeConfig::FullscreenVideoWorkaround() { return _fullscreenVideoWorkaround; }
 const std::wstring& RuntimeConfig::CustomFontName() { return _customFontName; }
 const std::wstring& RuntimeConfig::CustomFontFilename() { return _customFontFilename; }
 const std::wstring& RuntimeConfig::MonospaceFontFilename() { return _monospaceFontFilename; }

@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "SharedConstants.h"
 #include "PALHooks.h"
 #include "D3D9Hooks.h"
 #include <sstream>
@@ -25,7 +26,7 @@ static void CheckRequiredDataFiles()
         {
             std::wstringstream ss;
             ss << L"Required data file not found: " << filePath << L"\n\n";
-            ss << L"Please ensure you have run VNTextPatch to insert the translated script.";
+            ss << L"Please ensure you have run VNTextPatch to insert the translated script, or disable enableFontSubstitution in " << RUNTIME_CONFIG_FILENAME;
             ShowErrorAndExit(ss.str());
         }
     }
@@ -59,19 +60,21 @@ void Initialize()
 
     SetCurrentDirectoryW(Path::GetModuleFolderPath(nullptr).c_str());
     RuntimeConfig::Load();
-    CheckRequiredDataFiles();
 
     CompilerHelper::Init();
     Win32AToWAdapter::Init();
-    SjisTunnelEncoding::PatchGameLookupTable();
-
-    GdiProportionalizer::Init();
+//    SjisTunnelEncoding::PatchGameLookupTable();
 //    D2DProportionalizer::Init();
+
+    if (RuntimeConfig::EnableFontSubstitution()) {
+        CheckRequiredDataFiles();
+        GdiProportionalizer::Init();
+        PALGrabCurrentText::Install();
+    }
 
     EnginePatches::Init();
 
-    PALGrabCurrentText::Install();
-    if (RuntimeConfig::FullscreenVideoFix())
+    if (RuntimeConfig::FullscreenVideoWorkaround())
         PALVideoFix::Install();
     if (RuntimeConfig::BorderlessFullscreen()) {
         D3D9Hooks::Install();

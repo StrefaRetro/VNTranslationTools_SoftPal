@@ -29,7 +29,7 @@ namespace VNTextPatch.Shared.Util
             if (_loaded)
                 return;
 
-            const string configFileName = "VNTranslationToolsConstants.json";
+            const string configFileName = SharedConstants.RUNTIME_CONFIG_FILENAME;
 
             if (!File.Exists(configFileName))
             {

@@ -5,6 +5,8 @@
 // Runtime-configurable settings are in VNTranslationToolsConstants.json
 // and are loaded at runtime by RuntimeConfig.
 
+#define RUNTIME_CONFIG_FILENAME "VNTranslationToolsConstants.json"
+
 // Expected original game values
 #define JAPANESE_FONT_NAME L"MS Gothic"
 #define GAME_DEFAULT_FONT_HEIGHT 21
