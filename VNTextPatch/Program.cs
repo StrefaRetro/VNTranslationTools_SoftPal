@@ -15,6 +15,7 @@ namespace VNTextPatch
         public static void Main(string[] args)
         {
             Options options = Options.Parse(args, out args);
+            RuntimeConfig.Load();
             if (args.Length == 0)
             {
                 PrintUsage();

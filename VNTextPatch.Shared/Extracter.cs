@@ -62,7 +62,7 @@ namespace VNTextPatch.Shared
         {
             foreach (string inputScriptName in _inputCollection.Scripts)
             {
-                if (SharedConstants.DEBUG_LOGGING) Console.WriteLine(inputScriptName);
+                if (RuntimeConfig.DebugLogging) Console.WriteLine(inputScriptName);
 
                 string textScriptName;
                 if (!string.IsNullOrEmpty(_inputScript.Extension))

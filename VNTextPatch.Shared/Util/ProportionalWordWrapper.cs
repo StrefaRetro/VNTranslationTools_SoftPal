@@ -13,7 +13,7 @@ namespace VNTextPatch.Shared.Util
 
         static ProportionalWordWrapper()
         {
-            CustomFontFilePath = FindFontFile(SharedConstants.CUSTOM_FONT_FILENAME);
+            CustomFontFilePath = FindFontFile(RuntimeConfig.CustomFontFilename);
             if (CustomFontFilePath != null)
             {
                 int result = NativeMethods.AddFontResourceExW(CustomFontFilePath, NativeMethods.FR_PRIVATE, IntPtr.Zero);
@@ -21,7 +21,7 @@ namespace VNTextPatch.Shared.Util
                     throw new FileNotFoundException($"Failed to load custom font: {CustomFontFilePath}");
             }
 
-            MonospaceFontFilePath = FindFontFile(SharedConstants.MONOSPACE_FONT_FILENAME);
+            MonospaceFontFilePath = FindFontFile(RuntimeConfig.MonospaceFontFilename);
             if (MonospaceFontFilePath != null)
             {
                 int result = NativeMethods.AddFontResourceExW(MonospaceFontFilePath, NativeMethods.FR_PRIVATE, IntPtr.Zero);
@@ -29,28 +29,28 @@ namespace VNTextPatch.Shared.Util
                     throw new FileNotFoundException($"Failed to load custom font: {CustomFontFilePath}");
             }
 
-            _fontName = SharedConstants.CUSTOM_FONT_NAME;
+            _fontName = RuntimeConfig.CustomFontName;
             _fontBold = false;
-            _defaultLineWidth = SharedConstants.PROPORTIONAL_LINE_WIDTH;
+            _defaultLineWidth = RuntimeConfig.ProportionalLineWidth;
 
             Default = new ProportionalWordWrapper(
                 _fontName,
-                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + SharedConstants.FONT_HEIGHT_INCREASE,
+                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + RuntimeConfig.FontHeightIncrease,
                 _fontBold,
                 _defaultLineWidth
             );
 
             Secondary = new ProportionalWordWrapper(
                 _fontName,
-                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + SharedConstants.FONT_HEIGHT_INCREASE,
+                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + RuntimeConfig.FontHeightIncrease,
                 _fontBold,
                 _defaultLineWidth
             );
 
-            string monospaceFontName = Path.GetFileNameWithoutExtension(SharedConstants.MONOSPACE_FONT_FILENAME);
+            string monospaceFontName = Path.GetFileNameWithoutExtension(RuntimeConfig.MonospaceFontFilename);
             Monospace = new ProportionalWordWrapper(
                 monospaceFontName,
-                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + SharedConstants.FONT_HEIGHT_INCREASE,
+                SharedConstants.GAME_DEFAULT_FONT_HEIGHT + RuntimeConfig.FontHeightIncrease,
                 false,
                 _defaultLineWidth
             );
@@ -115,7 +115,7 @@ namespace VNTextPatch.Shared.Util
 
             StringBuilder actualFontName = new StringBuilder(256);
             NativeMethods.GetTextFaceW(_dc, actualFontName.Capacity, actualFontName);
-            if (SharedConstants.DEBUG_LOGGING)
+            if (RuntimeConfig.DebugLogging)
             {
                 Console.WriteLine($"Requested font: {fontName}, actual font: {actualFontName}");
             }
@@ -124,7 +124,7 @@ namespace VNTextPatch.Shared.Util
 
             _scriptCache = IntPtr.Zero;
 
-            if (SharedConstants.DEBUG_LOGGING) Console.WriteLine($"ProportionalWordWrapper: font={fontName}, size={fontSize}, bold={bold}, lineWidth={lineWidth}");
+            if (RuntimeConfig.DebugLogging) Console.WriteLine($"ProportionalWordWrapper: font={fontName}, size={fontSize}, bold={bold}, lineWidth={lineWidth}");
         }
 
         protected override int GetTextWidth(string text, int offset, int length)

@@ -35,6 +35,7 @@
 #include "Util/MemoryUtil.h"
 #include "Util/MemoryUnprotector.h"
 #include "Util/StringUtil.h"
+#include "Util/RuntimeConfig.h"
 
 #include "PE/PE.h"
 

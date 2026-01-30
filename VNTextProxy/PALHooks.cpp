@@ -5,12 +5,11 @@
 
 #include "SharedConstants.h"
 
-#define PALTEXT_LOGGING DEBUG_LOGGING
-
-#ifdef PALTEXT_LOGGING
 static FILE* g_logFile = nullptr;
 static void dbg_log(const char* format, ...)
 {
+    if (!RuntimeConfig::DebugLogging())
+        return;
     if (!g_logFile)
         g_logFile = _fsopen("./PALhooks.log", "w", _SH_DENYNO);
     if (g_logFile)
@@ -23,9 +22,6 @@ static void dbg_log(const char* format, ...)
         fflush(g_logFile);
     }
 }
-#else
-#define dbg_log(...)
-#endif
 
 namespace PALGrabCurrentText
 {

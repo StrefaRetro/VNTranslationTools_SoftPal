@@ -11,8 +11,6 @@
 
 #pragma comment(lib, "usp10.lib")
 
-#define GDI_LOGGING DEBUG_LOGGING
-
 #define ENLARGE_FONT 1
 #define LEGACY_KERNING 0
 
@@ -81,13 +79,13 @@ static bool ContainsJapaneseCharacters(const wchar_t* text)
 
 void GdiProportionalizer::Init()
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "wt") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::Init() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "wt") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::Init() \n");
+            fclose(log);
+        }
     }
-#endif
 
     Proportionalizer::Init();
     ImportHooker::Hook(
@@ -110,13 +108,13 @@ void GdiProportionalizer::Init()
 
 int GdiProportionalizer::EnumFontsAHook(HDC hdc, LPCSTR lpLogfont, FONTENUMPROCA lpProc, LPARAM lParam)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::EnumFontsAHook() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::EnumFontsAHook() \n");
+            fclose(log);
+        }
     }
-#endif
 
     EnumFontsContext context;
     context.OriginalProc = lpProc;
@@ -127,13 +125,13 @@ int GdiProportionalizer::EnumFontsAHook(HDC hdc, LPCSTR lpLogfont, FONTENUMPROCA
 
 int GdiProportionalizer::EnumFontFamiliesExAHook(HDC hdc, LPLOGFONTA lpLogfont, FONTENUMPROCA lpProc, LPARAM lParam, DWORD dwFlags)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::EnumFontFamiliesExAHook() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::EnumFontFamiliesExAHook() \n");
+            fclose(log);
+        }
     }
-#endif
 
     LOGFONTW logFontW = ConvertLogFontAToW(*lpLogfont);
     EnumFontsContext context;
@@ -145,13 +143,13 @@ int GdiProportionalizer::EnumFontFamiliesExAHook(HDC hdc, LPLOGFONTA lpLogfont, 
 
 int GdiProportionalizer::EnumFontsProc(const LOGFONTW* lplf, const TEXTMETRICW* lptm, DWORD dwType, LPARAM lpData)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::EnumFontsProc() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::EnumFontsProc() \n");
+            fclose(log);
+        }
     }
-#endif
 
     EnumFontsContext* pContext = (EnumFontsContext*)lpData;
     ENUMLOGFONTEXDVA logFontExA;
@@ -173,13 +171,13 @@ HFONT GdiProportionalizer::CreateFontAHook(int cHeight, int cWidth, int cEscapem
     DWORD bItalic, DWORD bUnderline, DWORD bStrikeOut, DWORD iCharSet, DWORD iOutPrecision, DWORD iClipPrecision,
     DWORD iQuality, DWORD iPitchAndFamily, LPCSTR pszFaceName)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::CreateFontWHook() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::CreateFontWHook() \n");
+            fclose(log);
+        }
     }
-#endif
 
     return CreateFontWHook(
         cHeight,
@@ -201,13 +199,13 @@ HFONT GdiProportionalizer::CreateFontAHook(int cHeight, int cWidth, int cEscapem
 
 HFONT GdiProportionalizer::CreateFontIndirectAHook(LOGFONTA* pFontInfo)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::CreateFontIndirectAHook() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::CreateFontIndirectAHook() \n");
+            fclose(log);
+        }
     }
-#endif
 
     return CreateFontWHook(
         pFontInfo->lfHeight,
@@ -231,13 +229,13 @@ HFONT GdiProportionalizer::CreateFontWHook(int cHeight, int cWidth, int cEscapem
     DWORD bItalic, DWORD bUnderline, DWORD bStrikeOut, DWORD iCharSet, DWORD iOutPrecision, DWORD iClipPrecision,
     DWORD iQuality, DWORD iPitchAndFamily, LPCWSTR pszFaceName)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::CreateFontWHook() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::CreateFontWHook() \n");
+            fclose(log);
+        }
     }
-#endif
 
     LOGFONTW fontInfo;
     fontInfo.lfHeight = cHeight;
@@ -274,33 +272,33 @@ HFONT GdiProportionalizer::CreateFontIndirectWHook(LOGFONTW* pFontInfo)
     if (CustomFontName.empty())
     {
         LastFontName = pFontInfo->lfFaceName;
-#if GDI_LOGGING
-        FILE* log = nullptr;
-        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-            fprintf(log, "GdiProportionalizer::CreateFontIndirectWHook(): engineRequestedFaceName: %s, height: %d \n",
-                WideToUTF8(pFontInfo->lfFaceName).c_str(), pFontInfo->lfHeight);
-            fclose(log);
+        if (RuntimeConfig::DebugLogging()) {
+            FILE* log = nullptr;
+            if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+                fprintf(log, "GdiProportionalizer::CreateFontIndirectWHook(): engineRequestedFaceName: %s, height: %d \n",
+                    WideToUTF8(pFontInfo->lfFaceName).c_str(), pFontInfo->lfHeight);
+                fclose(log);
+            }
         }
-#endif
 
         return FontManager.FetchFont(*pFontInfo)->GetGdiHandle();
     }
 
     LONG height = pFontInfo->lfHeight; // normally 21
 #if ENLARGE_FONT
-    height += FONT_HEIGHT_INCREASE;
+    height += RuntimeConfig::FontHeightIncrease();
 #endif
 
     LastFontName = CustomFontName;
 
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::CreateFontIndirectWHook(): CustomFontName: %ls, height: %d \n",
-            CustomFontName.c_str(), height);
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::CreateFontIndirectWHook(): CustomFontName: %ls, height: %d \n",
+                CustomFontName.c_str(), height);
+            fclose(log);
+        }
     }
-#endif
 
     return FontManager.FetchFont(CustomFontName, height, Bold, Italic, Underline)->GetGdiHandle();
 }
@@ -308,13 +306,13 @@ HFONT GdiProportionalizer::CreateFontIndirectWHook(LOGFONTW* pFontInfo)
 HGDIOBJ GdiProportionalizer::SelectObjectHook(HDC hdc, HGDIOBJ obj)
 {
     const unsigned char* currentText = PALGrabCurrentText::get();
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::SelectObjectHook(): currentText: %s\n", currentText);
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::SelectObjectHook(): currentText: %s\n", currentText);
+            fclose(log);
+        }
     }
-#endif
 
     // Check if this is a font we manage and if text contains Japanese characters
     Font* pFont = FontManager.GetFont(static_cast<HFONT>(obj));
@@ -326,12 +324,13 @@ HGDIOBJ GdiProportionalizer::SelectObjectHook(HDC hdc, HGDIOBJ obj)
             // Use MS Gothic at game default size for Japanese text
             pFont = FontManager.FetchFont(JAPANESE_FONT_NAME, GAME_DEFAULT_FONT_HEIGHT, false, false, false);
             obj = pFont->GetGdiHandle();
-#if GDI_LOGGING
-            if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-                fprintf(log, "GdiProportionalizer::SelectObjectHook(): Switching to Japanese font for text: %s\n", currentText);
-                fclose(log);
+            if (RuntimeConfig::DebugLogging()) {
+                FILE* log = nullptr;
+                if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+                    fprintf(log, "GdiProportionalizer::SelectObjectHook(): Switching to Japanese font for text: %s\n", currentText);
+                    fclose(log);
+                }
             }
-#endif
         }
     }
 
@@ -343,13 +342,13 @@ HGDIOBJ GdiProportionalizer::SelectObjectHook(HDC hdc, HGDIOBJ obj)
 #if LEGACY_KERNING
     DWORD count = GetKerningPairsW(hdc, 0, nullptr);
     if (count == 0) {
-#if GDI_LOGGING
-        FILE* log = nullptr;
-        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-            fprintf(log, "A: 0 kerning pairs\n");
-            fclose(log);
+        if (RuntimeConfig::DebugLogging()) {
+            FILE* log = nullptr;
+            if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+                fprintf(log, "A: 0 kerning pairs\n");
+                fclose(log);
+            }
         }
-#endif
         // No pairs or error; optionally check GetLastError()
         return ret;
     }
@@ -357,12 +356,13 @@ HGDIOBJ GdiProportionalizer::SelectObjectHook(HDC hdc, HGDIOBJ obj)
     // Allocate and fetch the pairs
     std::vector<KERNINGPAIR> pairs(count);
     DWORD got = GetKerningPairsW(hdc, count, pairs.data());
-#if GDI_LOGGING
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "B: %d kerning pairs\n", got);
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "B: %d kerning pairs\n", got);
+            fclose(log);
+        }
     }
-#endif
     if (got == 0) {
         // Failed; optionally check GetLastError()
         return ret;
@@ -372,13 +372,6 @@ HGDIOBJ GdiProportionalizer::SelectObjectHook(HDC hdc, HGDIOBJ obj)
     kernAmounts.reserve(kernAmounts.size() + got);
     for (DWORD i = 0; i < got; ++i) {
         const KERNINGPAIR& kp = pairs[i];
-/*#if GDI_LOGGING
-        FILE* log = nullptr;
-        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-            fprintf(log, "Kerning pair: %d, %d, %d\n", kp.wFirst, kp.wSecond, kp.iKernAmount);
-            fclose(log);
-        }
-#endif//*/
         uint32_t key = static_cast<uint32_t>(kp.wFirst)
             | (static_cast<uint32_t>(kp.wSecond) << 16);
         kernAmounts[key] = static_cast<int>(kp.iKernAmount);
@@ -390,13 +383,13 @@ HGDIOBJ GdiProportionalizer::SelectObjectHook(HDC hdc, HGDIOBJ obj)
 
 BOOL GdiProportionalizer::DeleteObjectHook(HGDIOBJ obj)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::DeleteObjectHook() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::DeleteObjectHook() \n");
+            fclose(log);
+        }
     }
-#endif
 
     currentTextOffset = 0;
     totalAdvOut = 0;
@@ -413,13 +406,13 @@ BOOL GdiProportionalizer::DeleteObjectHook(HGDIOBJ obj)
 
 BOOL GdiProportionalizer::GetTextExtentPointAHook(HDC hdc, LPCSTR lpString, int c, LPSIZE lpsz)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::GetTextExtentPointAHook() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::GetTextExtentPointAHook() \n");
+            fclose(log);
+        }
     }
-#endif
 
     wstring str = SjisTunnelEncoding::Decode(lpString, c);
     return GetTextExtentPointW(hdc, str.c_str(), str.size(), lpsz);
@@ -427,13 +420,13 @@ BOOL GdiProportionalizer::GetTextExtentPointAHook(HDC hdc, LPCSTR lpString, int 
 
 BOOL GdiProportionalizer::GetTextExtentPoint32AHook(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::GetTextExtentPoint32AHook() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::GetTextExtentPoint32AHook() \n");
+            fclose(log);
+        }
     }
-#endif
 
     wstring str = SjisTunnelEncoding::Decode(lpString, c);
     return GetTextExtentPoint32W(hdc, str.c_str(), str.size(), psizl);
@@ -441,14 +434,14 @@ BOOL GdiProportionalizer::GetTextExtentPoint32AHook(HDC hdc, LPCSTR lpString, in
 
 BOOL GdiProportionalizer::TextOutAHook(HDC dc, int x, int y, LPCSTR pString, int count)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::TextOutAHook() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::TextOutAHook() \n");
+            fclose(log);
+        }
     }
-#endif
-    
+
     wstring text = SjisTunnelEncoding::Decode(pString, count);
     Font* pFont = CurrentFonts[dc];
     if (pFont == nullptr)
@@ -605,24 +598,25 @@ static int GetKerningAdjustment(HDC hdc, SCRIPT_CACHE* psc, wchar_t c1, wchar_t 
     // 1. Setup the pair string
     wchar_t pair[2] = { c1, c2 };
 
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::GetKerningAdjustment A: c1: %lc, c2: %lc\n", c1, c2);
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::GetKerningAdjustment A: c1: %lc, c2: %lc\n", c1, c2);
+            fclose(log);
+        }
     }
-#endif
 
     int wPair = GetStringAdvance(hdc, psc, pair, 2);
     int w1 = GetStringAdvance(hdc, psc, &c1, 1);
     int w2 = GetStringAdvance(hdc, psc, &c2, 1);
 
-#if GDI_LOGGING
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::GetKerningAdjustment B: wPair: %d, w1: %d, w2: %d\n", wPair, w1, w2);
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::GetKerningAdjustment B: wPair: %d, w1: %d, w2: %d\n", wPair, w1, w2);
+            fclose(log);
+        }
     }
-#endif
 
     return wPair - (w1 + w2);
 }
@@ -754,37 +748,37 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
     int advOut = (int)floor(advanceF + 0.5);
     
 
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::GetGlyphOutlineAHook() codepage: %d, fuFormat: %s, sjisChar: %s, currentText char: %c, Unicode 0x%x, nextChar: %c, pvBuffer: %d, cjBuffer: %d, metricsResult: %s, advOut: %d, "
-            "totalAdvOut: %d, a: %f, b: %f, c: %f, kern: %d\n",
-            GetACP(),
-            FuFormatToString(fuFormat).c_str(),
-            reinterpret_cast<const char*>(sjisStr.c_str()),
-            *currentChar,
-            ch,
-            (char) nextCharUnicode,
-            pvBuffer != NULL,
-            cjBuffer,
-            GlyphMetricsToString(lpgm).c_str(),
-            advOut, totalAdvOut, abc.abcfA, abc.abcfB, abc.abcfC, kern);
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::GetGlyphOutlineAHook() codepage: %d, fuFormat: %s, sjisChar: %s, currentText char: %c, Unicode 0x%x, nextChar: %c, pvBuffer: %d, cjBuffer: %d, metricsResult: %s, advOut: %d, "
+                "totalAdvOut: %d, a: %f, b: %f, c: %f, kern: %d\n",
+                GetACP(),
+                FuFormatToString(fuFormat).c_str(),
+                reinterpret_cast<const char*>(sjisStr.c_str()),
+                *currentChar,
+                ch,
+                (char) nextCharUnicode,
+                pvBuffer != NULL,
+                cjBuffer,
+                GlyphMetricsToString(lpgm).c_str(),
+                advOut, totalAdvOut, abc.abcfA, abc.abcfB, abc.abcfC, kern);
+            fclose(log);
+        }
     }
-#endif
 
     if (pvBuffer) {
         bool fontChanged = false;
         currentTextOffset += sjisCharLength;
         currentChar += sjisCharLength;
         while (*currentChar == '<') {
-            #if GDI_LOGGING
+            if (RuntimeConfig::DebugLogging()) {
                 FILE* log = nullptr;
                 if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
                     fprintf(log, "GdiProportionalizer control code currentChar: %s\n", currentChar);
                     fclose(log);
                 }
-            #endif
+            }
 
             fontChanged |= ProcessControlCode(currentChar);
 
@@ -806,13 +800,13 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
         totalAdvOut += advOut;
 
         if (fontChanged) {
-#if GDI_LOGGING
-            FILE* log = nullptr;
-            if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-                fprintf(log, "GdiProportionalizer font properties changed: Bold: %d, Italic: %d, Underline: %d\n", Bold, Italic, Underline);
-                fclose(log);
+            if (RuntimeConfig::DebugLogging()) {
+                FILE* log = nullptr;
+                if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+                    fprintf(log, "GdiProportionalizer font properties changed: Bold: %d, Italic: %d, Underline: %d\n", Bold, Italic, Underline);
+                    fclose(log);
+                }
             }
-#endif
             Font* pFont = CurrentFonts[hdc];
             if (pFont != nullptr)
             {
@@ -847,7 +841,7 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
 
 #if ENLARGE_FONT
     // Text is too low in the textbox for enlarged fonts
-    lpgm->gmptGlyphOrigin.y += FONT_Y_TOP_POS_DECREASE;
+    lpgm->gmptGlyphOrigin.y += RuntimeConfig::FontYTopPosDecrease();
 #endif
 
     return ret;
@@ -855,13 +849,13 @@ DWORD GdiProportionalizer::GetGlyphOutlineAHook(HDC hdc, UINT uChar, UINT fuForm
 
 LOGFONTA GdiProportionalizer::ConvertLogFontWToA(const LOGFONTW& logFontW)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::ConvertLogFontWToA() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::ConvertLogFontWToA() \n");
+            fclose(log);
+        }
     }
-#endif
 
     LOGFONTA logFontA;
     logFontA.lfCharSet = logFontW.lfCharSet;
@@ -883,13 +877,13 @@ LOGFONTA GdiProportionalizer::ConvertLogFontWToA(const LOGFONTW& logFontW)
 
 LOGFONTW GdiProportionalizer::ConvertLogFontAToW(const LOGFONTA& logFontA)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::ConvertLogFontAToW() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::ConvertLogFontAToW() \n");
+            fclose(log);
+        }
     }
-#endif
 
     LOGFONTW logFontW;
     logFontW.lfCharSet = logFontA.lfCharSet;
@@ -911,13 +905,13 @@ LOGFONTW GdiProportionalizer::ConvertLogFontAToW(const LOGFONTA& logFontA)
 
 TEXTMETRICA GdiProportionalizer::ConvertTextMetricWToA(const TEXTMETRICW& textMetricW)
 {
-#if GDI_LOGGING
-    FILE* log = nullptr;
-    if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
-        fprintf(log, "GdiProportionalizer::ConvertTextMetricWToA() \n");
-        fclose(log);
+    if (RuntimeConfig::DebugLogging()) {
+        FILE* log = nullptr;
+        if (fopen_s(&log, "winmm_dll_log.txt", "at") == 0 && log) {
+            fprintf(log, "GdiProportionalizer::ConvertTextMetricWToA() \n");
+            fclose(log);
+        }
     }
-#endif
 
     TEXTMETRICA textMetricA;
     textMetricA.tmAscent = textMetricW.tmAscent;

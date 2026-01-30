@@ -110,7 +110,7 @@ wstring Proportionalizer::LoadMonospaceFont()
     if (pLastSlash != nullptr)
         *pLastSlash = L'\0';
 
-    wstring fontPath = wstring(folderPath) + L"\\" MONOSPACE_FONT_FILENAME;
+    wstring fontPath = wstring(folderPath) + L"\\" + RuntimeConfig::MonospaceFontFilename();
     if (GetFileAttributesW(fontPath.c_str()) == INVALID_FILE_ATTRIBUTES)
         return L"";
 
@@ -133,7 +133,7 @@ wstring Proportionalizer::FindCustomFontFile()
     if (pLastSlash != nullptr)
         *pLastSlash = L'\0';
 
-    wstring fontPath = wstring(folderPath) + L"\\" CUSTOM_FONT_FILENAME;
+    wstring fontPath = wstring(folderPath) + L"\\" + RuntimeConfig::CustomFontFilename();
     if (GetFileAttributesW(fontPath.c_str()) != INVALID_FILE_ATTRIBUTES)
         return fontPath;
 

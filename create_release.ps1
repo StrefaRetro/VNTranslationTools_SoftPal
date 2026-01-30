@@ -10,7 +10,11 @@ New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
 
 # Copy winmm.dll
 Write-Host "Copying winmm.dll..."
-Copy-Item "Release\winmm.dll" -Destination $releaseDir
+Copy-Item "VNTextProxy\Release\winmm.dll" -Destination $releaseDir
+
+# Copy config JSON file
+Write-Host "Copying VNTranslationToolsConstants.json..."
+Copy-Item "VNTranslationToolsConstants.json" -Destination $releaseDir
 
 # Copy all TTF files from Fonts directory
 Write-Host "Copying font files..."

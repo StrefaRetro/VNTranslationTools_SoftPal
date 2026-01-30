@@ -22,18 +22,18 @@ namespace VNTextPatch.Shared.Scripts.Softpal
             {
                 _code[expectedOffset] = (byte)(replacementVal & 0xFF);
                 _code[expectedOffset + 1] = (byte)(replacementVal >> 8);
-                if (SharedConstants.DEBUG_LOGGING) Console.WriteLine($"Replaced script.src value at 0x{expectedOffset:X} from {originalVal} to {replacementVal}");
+                if (RuntimeConfig.DebugLogging) Console.WriteLine($"Replaced script.src value at 0x{expectedOffset:X} from {originalVal} to {replacementVal}");
                 return true;
             }
             return false;
         }
         private void expandMaxLineLength()
         {
-            if (SharedConstants.DEBUG_LOGGING) Console.WriteLine("Modifying max line length");
+            if (RuntimeConfig.DebugLogging) Console.WriteLine("Modifying max line length");
             int originalVal = SharedConstants.GAME_DEFAULT_MAX_LINE_WIDTH;
             // screen width is around 610, textbox boundary around 570.
             // Note that raising this also slows down text fade-in across lines
-            int replacementVal = SharedConstants.MAX_LINE_WIDTH;
+            int replacementVal = RuntimeConfig.MaxLineWidth;
 
             int expectedOffset = 0x26084;
 
@@ -43,7 +43,7 @@ namespace VNTextPatch.Shared.Scripts.Softpal
         private void expandSpacingBetweenLines()
         {
             int originalVal = SharedConstants.GAME_DEFAULT_SPACING_BETWEEN_LINES;
-            int replacementVal = SharedConstants.FONT_Y_SPACING_BETWEEN_LINES;
+            int replacementVal = RuntimeConfig.FontYSpacingBetweenLines;
             int expectedOffset = 0x2605C;
 
             replaceScriptSrcConstant(originalVal, replacementVal, expectedOffset);
@@ -148,7 +148,7 @@ namespace VNTextPatch.Shared.Scripts.Softpal
                 if (monospace && ProportionalWordWrapper.Monospace != null)
                     wrapper = ProportionalWordWrapper.Monospace;
                 else if (fontSize > 0)
-                    wrapper = ProportionalWordWrapper.GetForSize(fontSize + SharedConstants.FONT_HEIGHT_INCREASE);
+                    wrapper = ProportionalWordWrapper.GetForSize(fontSize + RuntimeConfig.FontHeightIncrease);
                 else
                     wrapper = ProportionalWordWrapper.Default;
                 text = wrapper.Wrap(text, controlCodeRegex, "<br>");
@@ -213,7 +213,7 @@ namespace VNTextPatch.Shared.Scripts.Softpal
                 iteration++;
                 
                 /*
-                if (SharedConstants.DEBUG_LOGGING && iteration is >= 6895 and <= 6930 or >= 70650 and <= 70660)
+                if (RuntimeConfig.DebugLogging && iteration is >= 6895 and <= 6930 or >= 70650 and <= 70660)
                 {
                     Console.WriteLine($"Debugging iteration: {iteration} offset: {operand.Offset:X} type: {operand.Type} "
                         + $"text: {stringEnumerator.Current.Text}");
@@ -275,7 +275,7 @@ namespace VNTextPatch.Shared.Scripts.Softpal
                     message2 = logString.Substring(firstMessageLength);
 
                     /*
-                    if (SharedConstants.DEBUG_LOGGING && (logString.StartsWith("\"Hey,|don't|go|getting|surprised")
+                    if (RuntimeConfig.DebugLogging && (logString.StartsWith("\"Hey,|don't|go|getting|surprised")
                         || logString.StartsWith("\"Breakfast|is|the|most|important")))
                     {
                         Console.WriteLine("Merged split line at " + iteration + ": LogString: " + logString
@@ -297,7 +297,7 @@ namespace VNTextPatch.Shared.Scripts.Softpal
                 if (operand.Type == ScriptStringType.LogMessage)
                 {
                     /*
-                    if (SharedConstants.DEBUG_LOGGING) Console.WriteLine($"Unexpected LogMessage line at {iteration} offset: {operand.Offset:X} type: {operand.Type} "
+                    if (RuntimeConfig.DebugLogging) Console.WriteLine($"Unexpected LogMessage line at {iteration} offset: {operand.Offset:X} type: {operand.Type} "
                         + $"text: {stringEnumerator.Current.Text}");
                     */
 

@@ -55,7 +55,7 @@ namespace VNTextPatch.Shared.Util
             }
         NestedBreak:
 
-            if (numLines >= SharedConstants.NUM_LINES_WARN_THRESHOLD)
+            if (numLines >= RuntimeConfig.NumLinesWarnThreshold)
             {
                 _longTextboxCount++;
                 Console.WriteLine("Warning: " + numLines + " lines in: " + result.ToString());

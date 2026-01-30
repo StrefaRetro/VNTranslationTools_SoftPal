@@ -159,6 +159,7 @@
     <Compile Include="Util\MonospaceWordWrapper.cs" />
     <Compile Include="Util\NativeMethods.cs" />
     <Compile Include="Util\ProportionalWordWrapper.cs" />
+    <Compile Include="Util\RuntimeConfig.cs" />
     <Compile Include="Util\SjisTunnelEncoding.cs" />
     <Compile Include="Util\StringUtil.cs" />
     <Compile Include="Util\TrackingStringReader.cs" />

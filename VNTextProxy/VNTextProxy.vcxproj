@@ -46,10 +46,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>winmm</TargetName>
+    <OutDir>$(ProjectDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>winmm</TargetName>
+    <OutDir>$(ProjectDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -126,6 +128,7 @@
     <ClInclude Include="Util\MemoryUtil.h" />
     <ClInclude Include="Util\Path.h" />
     <ClInclude Include="Util\StringUtil.h" />
+    <ClInclude Include="Util\RuntimeConfig.h" />
     <ClInclude Include="Win32AToWAdapter.h" />
   </ItemGroup>
   <ItemGroup>
@@ -156,6 +159,7 @@
     <ClCompile Include="Util\MemoryUtil.cpp" />
     <ClCompile Include="Util\Path.cpp" />
     <ClCompile Include="Util\StringUtil.cpp" />
+    <ClCompile Include="Util\RuntimeConfig.cpp" />
     <ClCompile Include="Win32AToWAdapter.cpp" />
   </ItemGroup>
   <ItemGroup>
