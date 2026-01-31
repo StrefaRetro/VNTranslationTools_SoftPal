@@ -7,7 +7,7 @@
 #include <d3d11.h>
 
 #include "SharedConstants.h"
-#include "BorderlessState.h"
+#include "PillarboxedState.h"
 #include "BicubicScaler.h"
 #include "DX11Video.h"
 
@@ -87,8 +87,8 @@ namespace PALGrabCurrentText
     }
 }
 
-// DirectShow video scaling for borderless mode
-// Hooks IVideoWindow::SetWindowPosition to scale video to match our borderless scaling
+// DirectShow video scaling for pillarboxed mode
+// Hooks IVideoWindow::SetWindowPosition to scale video to match our pillarboxed scaling
 // Also captures video frames for DX11 rendering
 namespace DirectShowVideoScale
 {
@@ -606,13 +606,13 @@ namespace DirectShowVideoScale
         return SUCCEEDED(hr);
     }
 
-    // IVideoWindow::SetWindowPosition hook - scales video position/size in borderless mode
+    // IVideoWindow::SetWindowPosition hook - scales video position/size in pillarboxed mode
     static HRESULT STDMETHODCALLTYPE VW_SetWindowPosition_Hook(IVideoWindow* pThis, long Left, long Top, long Width, long Height)
     {
         dbg_log("IVideoWindow::SetWindowPosition: %d,%d %dx%d", Left, Top, Width, Height);
 
         // In DX11 mode, we render video ourselves - hide the video window
-        if (g_dx11Initialized && BorderlessState::g_borderlessActive)
+        if (g_dx11Initialized && PillarboxedState::g_pillarboxedActive)
         {
             dbg_log("  [DX11] Video window hidden, rendering via DX11");
             // Position window off-screen or at 0,0 with minimal size
@@ -620,13 +620,13 @@ namespace DirectShowVideoScale
         }
 
         // DX9 mode: scale video window position
-        if (BorderlessState::g_borderlessActive)
+        if (PillarboxedState::g_pillarboxedActive)
         {
-            long scaledLeft = BorderlessState::g_offsetX;
-            long scaledTop = BorderlessState::g_offsetY;
-            long scaledWidth = BorderlessState::g_scaledWidth;
-            long scaledHeight = BorderlessState::g_scaledHeight;
-            dbg_log("  [Borderless] Scaled to: %d,%d %dx%d", scaledLeft, scaledTop, scaledWidth, scaledHeight);
+            long scaledLeft = PillarboxedState::g_offsetX;
+            long scaledTop = PillarboxedState::g_offsetY;
+            long scaledWidth = PillarboxedState::g_scaledWidth;
+            long scaledHeight = PillarboxedState::g_scaledHeight;
+            dbg_log("  [Pillarboxed] Scaled to: %d,%d %dx%d", scaledLeft, scaledTop, scaledWidth, scaledHeight);
             return oVW_SetWindowPosition(pThis, scaledLeft, scaledTop, scaledWidth, scaledHeight);
         }
 
@@ -639,7 +639,7 @@ namespace DirectShowVideoScale
         dbg_log("IVideoWindow::put_Visible: %d", Visible);
 
         // In DX11 mode, keep video window hidden
-        if (g_dx11Initialized && BorderlessState::g_borderlessActive)
+        if (g_dx11Initialized && PillarboxedState::g_pillarboxedActive)
         {
             dbg_log("  [DX11] Keeping video window hidden");
             return oVW_put_Visible(pThis, OAFALSE);

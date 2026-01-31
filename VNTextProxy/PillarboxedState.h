@@ -2,13 +2,13 @@
 
 #include <windows.h>
 
-// Shared state for borderless fullscreen implementation
+// Shared state for pillarboxed fullscreen implementation
 // Accessed by both D3D9Hooks and Win32AToWAdapter
 
-namespace BorderlessState
+namespace PillarboxedState
 {
-    // Is borderless mode currently active?
-    inline bool g_borderlessActive = false;
+    // Is pillarboxed mode currently active?
+    inline bool g_pillarboxedActive = false;
 
     // Main game window handle (tracked by CreateWindowExA hook)
     inline HWND g_mainGameWindow = nullptr;

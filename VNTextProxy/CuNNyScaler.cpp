@@ -82,22 +82,16 @@ uint2 Rmp8x8(uint idx) { return uint2(idx % 8, idx / 8); }
     };
 
     static std::string LoadFile(const char* name) {
-        const char* paths[] = { name, "./CuNNy-fast-NVL.hlsl", "../VNTranslationTools/VNTextProxy/CuNNy-fast-NVL.hlsl" };
-        cunny_log("LoadFile: Looking for shader file...");
-        for (auto p : paths) {
-            cunny_log("  Trying path: %s", p);
-            std::ifstream f(p);
-            if (f) {
-                std::stringstream ss;
-                ss << f.rdbuf();
-                std::string content = ss.str();
-                cunny_log("  SUCCESS! Loaded %zu bytes from: %s", content.length(), p);
-                return content;
-            } else {
-                cunny_log("  Failed to open: %s", p);
-            }
+        cunny_log("LoadFile: Loading %s", name);
+        std::ifstream f(name);
+        if (f) {
+            std::stringstream ss;
+            ss << f.rdbuf();
+            std::string content = ss.str();
+            cunny_log("LoadFile: SUCCESS - loaded %zu bytes", content.length());
+            return content;
         }
-        cunny_log("LoadFile: FAILED - could not find shader file in any path");
+        cunny_log("LoadFile: FAILED - could not open %s", name);
         return "";
     }
 
@@ -246,23 +240,6 @@ void main(uint3 tid : SV_GroupThreadID, uint3 gid : SV_GroupID) {
 )" + body + "\n}";
     }
 
-    static std::string LoadDownscaleFile() {
-        const char* paths[] = { "Downscale.hlsl", "./Downscale.hlsl", "../VNTranslationTools/VNTextProxy/Downscale.hlsl" };
-        cunny_log("LoadDownscaleFile: Looking for shader file...");
-        for (auto p : paths) {
-            cunny_log("  Trying path: %s", p);
-            std::ifstream f(p);
-            if (f) {
-                std::stringstream ss;
-                ss << f.rdbuf();
-                std::string content = ss.str();
-                cunny_log("  SUCCESS! Loaded %zu bytes from: %s", content.length(), p);
-                return content;
-            }
-        }
-        cunny_log("LoadDownscaleFile: FAILED - could not find shader file");
-        return "";
-    }
 
     static std::string ExtractDownscaleBody(const std::string& src) {
         // Find "float4 Pass1(float2 p)" function
@@ -447,8 +424,7 @@ void main(uint3 dtid : SV_DispatchThreadID) {
         }
 
         // Load and compile downscale shader
-        cunny_log("Initialize: Loading Downscale shader");
-        std::string downscaleSrc = LoadDownscaleFile();
+        std::string downscaleSrc = LoadFile("Downscale.hlsl");
         if (!downscaleSrc.empty()) {
             std::string functions = ExtractDownscaleFunctions(downscaleSrc);
             std::string body = ExtractDownscaleBody(downscaleSrc);

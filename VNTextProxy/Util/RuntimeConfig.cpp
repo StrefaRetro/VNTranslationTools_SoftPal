@@ -68,7 +68,7 @@ void RuntimeConfig::Load()
         _maxLineWidth = config.at("maxLineWidth").get<int>();
         _numLinesWarnThreshold = config.at("numLinesWarnThreshold").get<int>();
         _pillarboxedFullscreen = config.value("pillarboxedFullscreen", true);
-        _clipMouseCursorInBorderlessFullscreen = config.value("clipMouseCursorInBorderlessFullscreen", true);
+        _clipMouseCursorInPillarboxedFullscreen = config.value("clipMouseCursorInPillarboxedFullscreen", true);
         _directX11Upscaling = config.value("directX11Upscaling", true);
     }
     catch (const json::exception& e)
@@ -98,7 +98,7 @@ void RuntimeConfig::Load()
         fprintf(debugLog2, "  maxLineWidth: %d\n", _maxLineWidth);
         fprintf(debugLog2, "  numLinesWarnThreshold: %d\n", _numLinesWarnThreshold);
         fprintf(debugLog2, "  pillarboxedFullscreen: %s\n", _pillarboxedFullscreen ? "true" : "false");
-        fprintf(debugLog2, "  clipMouseCursorInBorderlessFullscreen: %s\n", _clipMouseCursorInBorderlessFullscreen ? "true" : "false");
+        fprintf(debugLog2, "  clipMouseCursorInPillarboxedFullscreen: %s\n", _clipMouseCursorInPillarboxedFullscreen ? "true" : "false");
         fprintf(debugLog2, "  directX11Upscaling: %s\n", _directX11Upscaling ? "true" : "false");
         fclose(debugLog2);
     }
@@ -107,7 +107,7 @@ void RuntimeConfig::Load()
 bool RuntimeConfig::DebugLogging() { return _debugLogging; }
 bool RuntimeConfig::EnableFontSubstitution() { return _enableFontSubstitution; }
 bool RuntimeConfig::PillarboxedFullscreen() { return _pillarboxedFullscreen; }
-bool RuntimeConfig::ClipMouseCursorInPillarboxedFullscreen() { return _clipMouseCursorInBorderlessFullscreen; }
+bool RuntimeConfig::ClipMouseCursorInPillarboxedFullscreen() { return _clipMouseCursorInPillarboxedFullscreen; }
 bool RuntimeConfig::DirectX11Upscaling() { return _directX11Upscaling; }
 const std::wstring& RuntimeConfig::CustomFontName() { return _customFontName; }
 const std::wstring& RuntimeConfig::CustomFontFilename() { return _customFontFilename; }

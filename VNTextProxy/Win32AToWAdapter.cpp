@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "SharedConstants.h"
-#include "BorderlessState.h"
+#include "PillarboxedState.h"
 
 using namespace std;
 
@@ -485,13 +485,13 @@ HWND Win32AToWAdapter::CreateWindowExAHook(DWORD dwExStyle, LPCSTR lpClassName, 
     winapi_log("  -> HWND=0x%p", hWnd);
 
     // Track the main game window (FlyableHeart class with no parent)
-    if (lpClassName && hWndParent == nullptr && BorderlessState::g_mainGameWindow == nullptr)
+    if (lpClassName && hWndParent == nullptr && PillarboxedState::g_mainGameWindow == nullptr)
     {
         // Check if this looks like the main game window (not a child or popup)
         if (dwStyle & WS_OVERLAPPEDWINDOW || dwStyle & WS_POPUP)
         {
-            BorderlessState::g_mainGameWindow = hWnd;
-            winapi_log("  [Borderless] Tracking as main game window");
+            PillarboxedState::g_mainGameWindow = hWnd;
+            winapi_log("  [Pillarboxed] Tracking as main game window");
         }
     }
 
@@ -507,17 +507,17 @@ LONG Win32AToWAdapter::SetWindowLongAHook(HWND hWnd, int nIndex, LONG dwNewLong)
         case GWL_WNDPROC: indexName = "GWL_WNDPROC"; break;
         case GWL_USERDATA: indexName = "GWL_USERDATA"; break;
     }
-    winapi_log("SetWindowLongA: hWnd=0x%p, nIndex=%s(%d), dwNewLong=0x%x, isMainWnd=%d, borderlessActive=%d",
+    winapi_log("SetWindowLongA: hWnd=0x%p, nIndex=%s(%d), dwNewLong=0x%x, isMainWnd=%d, pillarboxedActive=%d",
         hWnd, indexName, nIndex, dwNewLong,
-        (hWnd == BorderlessState::g_mainGameWindow) ? 1 : 0,
-        BorderlessState::g_borderlessActive ? 1 : 0);
+        (hWnd == PillarboxedState::g_mainGameWindow) ? 1 : 0,
+        PillarboxedState::g_pillarboxedActive ? 1 : 0);
 
-    // Block window style changes when borderless mode is active (we manage the window ourselves)
-    if (BorderlessState::g_borderlessActive && hWnd == BorderlessState::g_mainGameWindow)
+    // Block window style changes when pillarboxed mode is active (we manage the window ourselves)
+    if (PillarboxedState::g_pillarboxedActive && hWnd == PillarboxedState::g_mainGameWindow)
     {
         if (nIndex == GWL_STYLE || nIndex == GWL_EXSTYLE)
         {
-            winapi_log("  [Borderless] BLOCKED style change");
+            winapi_log("  [Pillarboxed] BLOCKED style change");
             return GetWindowLongA(hWnd, nIndex);  // Return current value as if it succeeded
         }
     }
@@ -533,15 +533,15 @@ LONG Win32AToWAdapter::SetWindowLongAHook(HWND hWnd, int nIndex, LONG dwNewLong)
 
 BOOL Win32AToWAdapter::SetWindowPosHook(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags)
 {
-    winapi_log("SetWindowPos: hWnd=0x%p, pos=(%d,%d), size=%dx%d, flags=0x%x, isMainWnd=%d, borderlessActive=%d",
+    winapi_log("SetWindowPos: hWnd=0x%p, pos=(%d,%d), size=%dx%d, flags=0x%x, isMainWnd=%d, pillarboxedActive=%d",
         hWnd, X, Y, cx, cy, uFlags,
-        (hWnd == BorderlessState::g_mainGameWindow) ? 1 : 0,
-        BorderlessState::g_borderlessActive ? 1 : 0);
+        (hWnd == PillarboxedState::g_mainGameWindow) ? 1 : 0,
+        PillarboxedState::g_pillarboxedActive ? 1 : 0);
 
-    // Block window position/size changes when borderless mode is active (we manage this ourselves)
-    if (BorderlessState::g_borderlessActive && hWnd == BorderlessState::g_mainGameWindow)
+    // Block window position/size changes when pillarboxed mode is active (we manage this ourselves)
+    if (PillarboxedState::g_pillarboxedActive && hWnd == PillarboxedState::g_mainGameWindow)
     {
-        winapi_log("  [Borderless] BLOCKED position/size change");
+        winapi_log("  [Pillarboxed] BLOCKED position/size change");
         return TRUE;  // Pretend it succeeded
     }
 
@@ -564,10 +564,10 @@ BOOL Win32AToWAdapter::ShowWindowHook(HWND hWnd, int nCmdShow)
         case SW_SHOWNA: cmdName = "SW_SHOWNA"; break;
         case SW_RESTORE: cmdName = "SW_RESTORE"; break;
     }
-    winapi_log("ShowWindow: hWnd=0x%p, nCmdShow=%s(%d), isMainWnd=%d, borderlessActive=%d",
+    winapi_log("ShowWindow: hWnd=0x%p, nCmdShow=%s(%d), isMainWnd=%d, pillarboxedActive=%d",
         hWnd, cmdName, nCmdShow,
-        (hWnd == BorderlessState::g_mainGameWindow) ? 1 : 0,
-        BorderlessState::g_borderlessActive ? 1 : 0);
+        (hWnd == PillarboxedState::g_mainGameWindow) ? 1 : 0,
+        PillarboxedState::g_pillarboxedActive ? 1 : 0);
 
     return ShowWindow(hWnd, nCmdShow);
 }
@@ -795,18 +795,18 @@ LONG Win32AToWAdapter::ChangeDisplaySettingsAHook(DEVMODEA* lpDevMode, DWORD dwF
             lpDevMode->dmPelsWidth, lpDevMode->dmPelsHeight,
             lpDevMode->dmBitsPerPel, lpDevMode->dmDisplayFrequency, dwFlags);
 
-        // Block ALL display mode changes - we always use borderless windowed mode
-        winapi_log("  [Borderless] BLOCKED - returning DISP_CHANGE_SUCCESSFUL without changing mode");
+        // Block ALL display mode changes - we always use pillarboxed windowed mode
+        winapi_log("  [Pillarboxed] BLOCKED - returning DISP_CHANGE_SUCCESSFUL without changing mode");
         return DISP_CHANGE_SUCCESSFUL;
     }
     else
     {
         winapi_log("ChangeDisplaySettingsA: lpDevMode=NULL (restore), flags=0x%x", dwFlags);
 
-        // Block restore when borderless (game is returning to windowed, Reset() handles this)
-        if (BorderlessState::g_borderlessActive)
+        // Block restore when pillarboxed (game is returning to windowed, Reset() handles this)
+        if (PillarboxedState::g_pillarboxedActive)
         {
-            winapi_log("  [Borderless] BLOCKED restore - returning DISP_CHANGE_SUCCESSFUL");
+            winapi_log("  [Pillarboxed] BLOCKED restore - returning DISP_CHANGE_SUCCESSFUL");
             return DISP_CHANGE_SUCCESSFUL;
         }
 
@@ -823,12 +823,12 @@ LONG Win32AToWAdapter::ChangeDisplaySettingsExAHook(LPCSTR lpszDeviceName, DEVMO
             lpDevMode->dmPelsWidth, lpDevMode->dmPelsHeight,
             lpDevMode->dmBitsPerPel, lpDevMode->dmDisplayFrequency, dwflags);
 
-        // Block ALL display mode changes - we always use borderless windowed mode
+        // Block ALL display mode changes - we always use pillarboxed windowed mode
         // This handles both:
-        // 1. When already in borderless mode (g_borderlessActive=true)
-        // 2. When transitioning from windowed to fullscreen via game menu (g_borderlessActive=false)
-        // The Reset() hook will handle the actual borderless setup
-        winapi_log("  [Borderless] BLOCKED - returning DISP_CHANGE_SUCCESSFUL without changing mode");
+        // 1. When already in pillarboxed mode (g_pillarboxedActive=true)
+        // 2. When transitioning from windowed to fullscreen via game menu (g_pillarboxedActive=false)
+        // The Reset() hook will handle the actual pillarboxed setup
+        winapi_log("  [Pillarboxed] BLOCKED - returning DISP_CHANGE_SUCCESSFUL without changing mode");
         return DISP_CHANGE_SUCCESSFUL;
     }
     else
@@ -836,10 +836,10 @@ LONG Win32AToWAdapter::ChangeDisplaySettingsExAHook(LPCSTR lpszDeviceName, DEVMO
         winapi_log("ChangeDisplaySettingsExA: device=%s, lpDevMode=NULL (restore), flags=0x%x",
             lpszDeviceName ? lpszDeviceName : "(null)", dwflags);
 
-        // Block restore when borderless (game is returning to windowed, Reset() handles this)
-        if (BorderlessState::g_borderlessActive)
+        // Block restore when pillarboxed (game is returning to windowed, Reset() handles this)
+        if (PillarboxedState::g_pillarboxedActive)
         {
-            winapi_log("  [Borderless] BLOCKED restore - returning DISP_CHANGE_SUCCESSFUL");
+            winapi_log("  [Pillarboxed] BLOCKED restore - returning DISP_CHANGE_SUCCESSFUL");
             return DISP_CHANGE_SUCCESSFUL;
         }
 
@@ -857,12 +857,12 @@ LONG Win32AToWAdapter::ChangeDisplaySettingsExAHook(LPCSTR lpszDeviceName, DEVMO
 
 BOOL Win32AToWAdapter::ClipCursorHook(const RECT* lpRect)
 {
-    if (BorderlessState::g_borderlessActive)
+    if (PillarboxedState::g_pillarboxedActive)
     {
         if (!RuntimeConfig::ClipMouseCursorInPillarboxedFullscreen())
         {
             // Cursor clipping disabled in config - allow cursor to move freely
-            winapi_log("ClipCursor: borderless mode, clipping disabled - unclipping cursor");
+            winapi_log("ClipCursor: pillarboxed mode, clipping disabled - unclipping cursor");
             return ClipCursor(nullptr);
         }
 
@@ -870,7 +870,7 @@ BOOL Win32AToWAdapter::ClipCursorHook(const RECT* lpRect)
         {
             // Transform game-space clip rect to screen-space
             RECT screenRect;
-            BorderlessState::GameRectToScreen(*lpRect, screenRect);
+            PillarboxedState::GameRectToScreen(*lpRect, screenRect);
 
             winapi_log("ClipCursor: game=(%d,%d)-(%d,%d) -> screen=(%d,%d)-(%d,%d)",
                 lpRect->left, lpRect->top, lpRect->right, lpRect->bottom,
@@ -880,7 +880,7 @@ BOOL Win32AToWAdapter::ClipCursorHook(const RECT* lpRect)
         }
     }
 
-    // Not in borderless mode, pass through
+    // Not in pillarboxed mode, pass through
     return ClipCursor(lpRect);
 }
 
@@ -888,11 +888,11 @@ BOOL Win32AToWAdapter::GetCursorPosHook(LPPOINT lpPoint)
 {
     BOOL result = GetCursorPos(lpPoint);
 
-    if (result && BorderlessState::g_borderlessActive && lpPoint != nullptr)
+    if (result && PillarboxedState::g_pillarboxedActive && lpPoint != nullptr)
     {
         // Transform screen coordinates to game coordinates
         int gameX, gameY;
-        BorderlessState::ScreenToGame(lpPoint->x, lpPoint->y, gameX, gameY);
+        PillarboxedState::ScreenToGame(lpPoint->x, lpPoint->y, gameX, gameY);
 
         lpPoint->x = gameX;
         lpPoint->y = gameY;
@@ -903,11 +903,11 @@ BOOL Win32AToWAdapter::GetCursorPosHook(LPPOINT lpPoint)
 
 BOOL Win32AToWAdapter::SetCursorPosHook(int X, int Y)
 {
-    if (BorderlessState::g_borderlessActive)
+    if (PillarboxedState::g_pillarboxedActive)
     {
         // Transform game coordinates to screen coordinates
         int screenX, screenY;
-        BorderlessState::GameToScreen(X, Y, screenX, screenY);
+        PillarboxedState::GameToScreen(X, Y, screenX, screenY);
 
         return SetCursorPos(screenX, screenY);
     }
@@ -919,18 +919,18 @@ BOOL Win32AToWAdapter::GetClientRectHook(HWND hWnd, LPRECT lpRect)
 {
     BOOL result = GetClientRect(hWnd, lpRect);
 
-    // In borderless mode, return the game resolution instead of actual window size
+    // In pillarboxed mode, return the game resolution instead of actual window size
     // This prevents the game from caching the large screen resolution
-    if (result && BorderlessState::g_borderlessActive && hWnd == BorderlessState::g_mainGameWindow && lpRect)
+    if (result && PillarboxedState::g_pillarboxedActive && hWnd == PillarboxedState::g_mainGameWindow && lpRect)
     {
         winapi_log("GetClientRect: hWnd=0x%p, actual=%dx%d -> returning game res %dx%d",
             hWnd, lpRect->right, lpRect->bottom,
-            BorderlessState::g_gameWidth, BorderlessState::g_gameHeight);
+            PillarboxedState::g_gameWidth, PillarboxedState::g_gameHeight);
 
         lpRect->left = 0;
         lpRect->top = 0;
-        lpRect->right = BorderlessState::g_gameWidth;
-        lpRect->bottom = BorderlessState::g_gameHeight;
+        lpRect->right = PillarboxedState::g_gameWidth;
+        lpRect->bottom = PillarboxedState::g_gameHeight;
     }
 
     return result;

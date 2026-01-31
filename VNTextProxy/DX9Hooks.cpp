@@ -4,7 +4,7 @@
 #include <windows.h>
 
 #include "SharedConstants.h"
-#include "BorderlessState.h"
+#include "PillarboxedState.h"
 
 #pragma comment(lib, "d3d9.lib")
 
@@ -135,24 +135,24 @@ namespace DX9Hooks
         return hr;
     }
 
-    // Helper function to set up borderless window after Reset
-    static void SetupBorderlessWindow(HWND hWnd)
+    // Helper function to set up pillarboxed window after Reset
+    static void SetupPillarboxedWindow(HWND hWnd)
     {
         if (!hWnd)
             return;
 
-        dbg_log("  [Borderless] Setting up borderless window...");
+        dbg_log("  [Pillarboxed] Setting up pillarboxed window...");
 
         // Get native screen resolution
-        BorderlessState::GetNativeResolution();
-        BorderlessState::CalculateScaling();
+        PillarboxedState::GetNativeResolution();
+        PillarboxedState::CalculateScaling();
 
-        dbg_log("  [Borderless] Screen: %dx%d, Scaled: %dx%d, Offset: (%d,%d)",
-            BorderlessState::g_screenWidth, BorderlessState::g_screenHeight,
-            BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight,
-            BorderlessState::g_offsetX, BorderlessState::g_offsetY);
+        dbg_log("  [Pillarboxed] Screen: %dx%d, Scaled: %dx%d, Offset: (%d,%d)",
+            PillarboxedState::g_screenWidth, PillarboxedState::g_screenHeight,
+            PillarboxedState::g_scaledWidth, PillarboxedState::g_scaledHeight,
+            PillarboxedState::g_offsetX, PillarboxedState::g_offsetY);
 
-        // Set borderless style: WS_POPUP | WS_VISIBLE
+        // Set pillarboxed style: WS_POPUP | WS_VISIBLE
         LONG style = WS_POPUP | WS_VISIBLE;
         SetWindowLongA(hWnd, GWL_STYLE, style);
 
@@ -161,11 +161,11 @@ namespace DX9Hooks
 
         // Position window to cover entire screen
         SetWindowPos(hWnd, HWND_TOP, 0, 0,
-            BorderlessState::g_screenWidth, BorderlessState::g_screenHeight,
+            PillarboxedState::g_screenWidth, PillarboxedState::g_screenHeight,
             SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 
-        dbg_log("  [Borderless] Window set to %dx%d at (0,0)",
-            BorderlessState::g_screenWidth, BorderlessState::g_screenHeight);
+        dbg_log("  [Pillarboxed] Window set to %dx%d at (0,0)",
+            PillarboxedState::g_screenWidth, PillarboxedState::g_screenHeight);
     }
 
     HRESULT WINAPI Reset_Hook(IDirect3DDevice9* pThis, D3DPRESENT_PARAMETERS* pPresentationParameters)
@@ -186,45 +186,45 @@ namespace DX9Hooks
         }
         g_renderTargetActive = false;
 
-        // Detect fullscreen request and convert to borderless windowed
+        // Detect fullscreen request and convert to pillarboxed windowed
         bool requestingFullscreen = (pPresentationParameters && !pPresentationParameters->Windowed);
-        bool requestingWindowed = (pPresentationParameters && pPresentationParameters->Windowed && BorderlessState::g_borderlessActive);
+        bool requestingWindowed = (pPresentationParameters && pPresentationParameters->Windowed && PillarboxedState::g_pillarboxedActive);
 
         if (requestingFullscreen)
         {
-            dbg_log("  [Borderless] Intercepting fullscreen request");
+            dbg_log("  [Pillarboxed] Intercepting fullscreen request");
 
             // Store the original game resolution
-            BorderlessState::g_gameWidth = pPresentationParameters->BackBufferWidth;
-            BorderlessState::g_gameHeight = pPresentationParameters->BackBufferHeight;
-            dbg_log("  [Borderless] Game resolution: %dx%d",
-                BorderlessState::g_gameWidth, BorderlessState::g_gameHeight);
+            PillarboxedState::g_gameWidth = pPresentationParameters->BackBufferWidth;
+            PillarboxedState::g_gameHeight = pPresentationParameters->BackBufferHeight;
+            dbg_log("  [Pillarboxed] Game resolution: %dx%d",
+                PillarboxedState::g_gameWidth, PillarboxedState::g_gameHeight);
 
             // Get native screen resolution
-            BorderlessState::GetNativeResolution();
-            BorderlessState::CalculateScaling();
-            dbg_log("  [Borderless] Native resolution: %dx%d",
-                BorderlessState::g_screenWidth, BorderlessState::g_screenHeight);
+            PillarboxedState::GetNativeResolution();
+            PillarboxedState::CalculateScaling();
+            dbg_log("  [Pillarboxed] Native resolution: %dx%d",
+                PillarboxedState::g_screenWidth, PillarboxedState::g_screenHeight);
 
             pPresentationParameters->Windowed = TRUE;
             pPresentationParameters->FullScreen_RefreshRateInHz = 0;
 
             // Pure DX9 mode: Set backbuffer to SCREEN resolution
             // We'll use StretchRect to scale from game RT to screen-sized backbuffer
-            pPresentationParameters->BackBufferWidth = BorderlessState::g_screenWidth;
-            pPresentationParameters->BackBufferHeight = BorderlessState::g_screenHeight;
-            dbg_log("  [Borderless] Setting backbuffer to screen resolution %dx%d",
-                BorderlessState::g_screenWidth, BorderlessState::g_screenHeight);
+            pPresentationParameters->BackBufferWidth = PillarboxedState::g_screenWidth;
+            pPresentationParameters->BackBufferHeight = PillarboxedState::g_screenHeight;
+            dbg_log("  [Pillarboxed] Setting backbuffer to screen resolution %dx%d",
+                PillarboxedState::g_screenWidth, PillarboxedState::g_screenHeight);
 
-            // Mark borderless mode as active BEFORE calling Reset
-            BorderlessState::g_borderlessActive = true;
+            // Mark pillarboxed mode as active BEFORE calling Reset
+            PillarboxedState::g_pillarboxedActive = true;
 
-            LogPresentParameters("  Modified for borderless", pPresentationParameters);
+            LogPresentParameters("  Modified for pillarboxed", pPresentationParameters);
         }
         else if (requestingWindowed)
         {
-            dbg_log("  [Borderless] Game requesting windowed mode, deactivating borderless");
-            BorderlessState::g_borderlessActive = false;
+            dbg_log("  [Pillarboxed] Game requesting windowed mode, deactivating pillarboxed");
+            PillarboxedState::g_pillarboxedActive = false;
 
             // Reset log counters
             presentLogCount = 0;
@@ -235,25 +235,25 @@ namespace DX9Hooks
             getBackBufferLogCount = 0;
 
             // Restore window to normal windowed style and size
-            HWND hWnd = BorderlessState::g_mainGameWindow;
+            HWND hWnd = PillarboxedState::g_mainGameWindow;
             if (hWnd)
             {
-                dbg_log("  [Borderless] Restoring window to windowed mode...");
+                dbg_log("  [Pillarboxed] Restoring window to windowed mode...");
                 SetWindowLongA(hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
-                RECT rect = { 0, 0, BorderlessState::g_gameWidth, BorderlessState::g_gameHeight };
+                RECT rect = { 0, 0, PillarboxedState::g_gameWidth, PillarboxedState::g_gameHeight };
                 AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
                 int width = rect.right - rect.left;
                 int height = rect.bottom - rect.top;
-                int x = (BorderlessState::g_screenWidth - width) / 2;
-                int y = (BorderlessState::g_screenHeight - height) / 2;
+                int x = (PillarboxedState::g_screenWidth - width) / 2;
+                int y = (PillarboxedState::g_screenHeight - height) / 2;
                 SetWindowPos(hWnd, HWND_NOTOPMOST, x, y, width, height, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
-                dbg_log("  [Borderless] Window restored to %dx%d at (%d,%d)", width, height, x, y);
+                dbg_log("  [Pillarboxed] Window restored to %dx%d at (%d,%d)", width, height, x, y);
             }
 
             if (pPresentationParameters->BackBufferWidth == 0 || pPresentationParameters->BackBufferHeight == 0)
             {
-                pPresentationParameters->BackBufferWidth = BorderlessState::g_gameWidth;
-                pPresentationParameters->BackBufferHeight = BorderlessState::g_gameHeight;
+                pPresentationParameters->BackBufferWidth = PillarboxedState::g_gameWidth;
+                pPresentationParameters->BackBufferHeight = PillarboxedState::g_gameHeight;
             }
         }
 
@@ -261,14 +261,14 @@ namespace DX9Hooks
 
         dbg_log("  Reset returned 0x%x", hr);
 
-        // After successful Reset with borderless mode, set up the window
+        // After successful Reset with pillarboxed mode, set up the window
         if (SUCCEEDED(hr) && requestingFullscreen)
         {
-            HWND hWnd = BorderlessState::g_mainGameWindow;
+            HWND hWnd = PillarboxedState::g_mainGameWindow;
             if (!hWnd && pPresentationParameters)
                 hWnd = pPresentationParameters->hDeviceWindow;
 
-            SetupBorderlessWindow(hWnd);
+            SetupPillarboxedWindow(hWnd);
 
             presentLogCount = 0;
             endSceneLogCount = 0;
@@ -277,8 +277,8 @@ namespace DX9Hooks
         // Set up render target redirection for scaling
         if (SUCCEEDED(hr))
         {
-            UINT gameWidth = BorderlessState::g_gameWidth;
-            UINT gameHeight = BorderlessState::g_gameHeight;
+            UINT gameWidth = PillarboxedState::g_gameWidth;
+            UINT gameHeight = PillarboxedState::g_gameHeight;
 
             if (gameWidth == 0 || gameHeight == 0)
             {
@@ -337,11 +337,11 @@ namespace DX9Hooks
     {
         if (RuntimeConfig::DebugLogging() && presentLogCount < 20)
         {
-            dbg_log("IDirect3DDevice9::Present: src=%s, dst=%s, hwnd=0x%p, borderless=%d",
+            dbg_log("IDirect3DDevice9::Present: src=%s, dst=%s, hwnd=0x%p, pillarboxed=%d",
                 pSourceRect ? "set" : "null",
                 pDestRect ? "set" : "null",
                 hDestWindowOverride,
-                BorderlessState::g_borderlessActive ? 1 : 0);
+                PillarboxedState::g_pillarboxedActive ? 1 : 0);
             presentLogCount++;
         }
 
@@ -354,23 +354,23 @@ namespace DX9Hooks
             // Clear backbuffer to black for pillarboxing
             pThis->ColorFill(g_pOriginalBackBuffer, nullptr, D3DCOLOR_XRGB(0, 0, 0));
 
-            if (BorderlessState::g_borderlessActive)
+            if (PillarboxedState::g_pillarboxedActive)
             {
-                // Borderless mode: scale with aspect ratio preservation
-                RECT srcRect = { 0, 0, (LONG)BorderlessState::g_gameWidth, (LONG)BorderlessState::g_gameHeight };
+                // Pillarboxed mode: scale with aspect ratio preservation
+                RECT srcRect = { 0, 0, (LONG)PillarboxedState::g_gameWidth, (LONG)PillarboxedState::g_gameHeight };
                 RECT dstRect = {
-                    (LONG)BorderlessState::g_offsetX,
-                    (LONG)BorderlessState::g_offsetY,
-                    (LONG)(BorderlessState::g_offsetX + BorderlessState::g_scaledWidth),
-                    (LONG)(BorderlessState::g_offsetY + BorderlessState::g_scaledHeight)
+                    (LONG)PillarboxedState::g_offsetX,
+                    (LONG)PillarboxedState::g_offsetY,
+                    (LONG)(PillarboxedState::g_offsetX + PillarboxedState::g_scaledWidth),
+                    (LONG)(PillarboxedState::g_offsetY + PillarboxedState::g_scaledHeight)
                 };
 
                 if (RuntimeConfig::DebugLogging() && presentLogCount <= 10)
                 {
                     dbg_log("  [DX9] StretchRect: %dx%d -> %dx%d at offset (%d,%d)",
-                        BorderlessState::g_gameWidth, BorderlessState::g_gameHeight,
-                        BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight,
-                        BorderlessState::g_offsetX, BorderlessState::g_offsetY);
+                        PillarboxedState::g_gameWidth, PillarboxedState::g_gameHeight,
+                        PillarboxedState::g_scaledWidth, PillarboxedState::g_scaledHeight,
+                        PillarboxedState::g_offsetX, PillarboxedState::g_offsetY);
                 }
 
                 HRESULT hr = oStretchRect(pThis, g_pGameRenderTarget, &srcRect, g_pOriginalBackBuffer, &dstRect, D3DTEXF_LINEAR);

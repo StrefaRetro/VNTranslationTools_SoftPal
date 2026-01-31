@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "DX11Video.h"
 #include "DX11Hooks.h"
-#include "BorderlessState.h"
+#include "PillarboxedState.h"
 #include "BicubicScaler.h"
 #include "CuNNyScaler.h"
 #include "SharedConstants.h"
@@ -49,13 +49,13 @@ namespace DX11Video {
         float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
         pContext->ClearRenderTargetView(pRTV, clearColor);
 
-        if (BorderlessState::g_borderlessActive)
+        if (PillarboxedState::g_pillarboxedActive)
         {
-            // Borderless mode: CuNNy upscale + Lanczos downscale with pillarboxing
-            UINT scaledWidth = BorderlessState::g_scaledWidth;
-            UINT scaledHeight = BorderlessState::g_scaledHeight;
-            int offsetX = BorderlessState::g_offsetX;
-            int offsetY = BorderlessState::g_offsetY;
+            // Pillarboxed mode: CuNNy upscale + Lanczos downscale with pillarboxing
+            UINT scaledWidth = PillarboxedState::g_scaledWidth;
+            UINT scaledHeight = PillarboxedState::g_scaledHeight;
+            int offsetX = PillarboxedState::g_offsetX;
+            int offsetY = PillarboxedState::g_offsetY;
 
             // CuNNy 2x upscale
             ID3D11ShaderResourceView* cunnyOutput = CuNNyScaler::Upscale2x(

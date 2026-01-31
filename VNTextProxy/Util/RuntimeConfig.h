@@ -32,7 +32,7 @@ private:
     static inline bool _debugLogging;
     static inline bool _enableFontSubstitution;
     static inline bool _pillarboxedFullscreen;
-    static inline bool _clipMouseCursorInBorderlessFullscreen;
+    static inline bool _clipMouseCursorInPillarboxedFullscreen;
     static inline bool _directX11Upscaling;
     static inline std::wstring _customFontName;
     static inline std::wstring _customFontFilename;
