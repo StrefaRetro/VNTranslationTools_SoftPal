@@ -114,7 +114,7 @@
     <ClInclude Include="BicubicScaler.h" />
     <ClInclude Include="CuNNyScaler.h" />
     <ClInclude Include="DX11Video.h" />
-    <ClInclude Include="BorderlessState.h" />
+    <ClInclude Include="PillarboxedState.h" />
     <ClInclude Include="Patches\BabelPatch.h" />
     <ClInclude Include="Patches\EnginePatches.h" />
     <ClInclude Include="PE\PE.h" />

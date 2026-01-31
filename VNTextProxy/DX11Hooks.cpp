@@ -561,10 +561,6 @@ namespace DX11Hooks
         if (requestingFullscreen)
         {
             dbg_log("  [Pillarboxed] Intercepting fullscreen request");
-
-            // Store the original game resolution
-            PillarboxedState::g_gameWidth = pPresentationParameters->BackBufferWidth;
-            PillarboxedState::g_gameHeight = pPresentationParameters->BackBufferHeight;
             dbg_log("  [Pillarboxed] Game resolution: %dx%d",
                 PillarboxedState::g_gameWidth, PillarboxedState::g_gameHeight);
 
@@ -1052,6 +1048,10 @@ namespace DX11Hooks
 
     HRESULT WINAPI SetViewport_Hook(IDirect3DDevice9* pThis, const D3DVIEWPORT9* pViewport)
     {
+        // Capture the true game resolution from viewport (unaffected by DPI virtualization)
+        if (pViewport)
+            PillarboxedState::SetGameResolution(pViewport->Width, pViewport->Height);
+
         if (RuntimeConfig::DebugLogging() && setViewportLogCount < 50)
         {
             if (pViewport)

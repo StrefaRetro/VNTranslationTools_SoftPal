@@ -14,6 +14,6 @@
   "numLinesWarnThreshold": 4,
 
   "pillarboxedFullscreen": true,
-  "directX11Upscaling": true,
+  "directX11Upscaling": false,
   "clipMouseCursorInPillarboxedFullscreen": false
 }
