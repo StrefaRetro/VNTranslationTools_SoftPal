@@ -45,4 +45,7 @@ namespace CuNNyScaler
 
     // Check if downscale shader is available
     bool IsDownscaleAvailable();
+
+    // Show error and exit if rendering fails
+    void FatalRenderingError(const char* context);
 }

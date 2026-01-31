@@ -112,6 +112,7 @@
     <ClInclude Include="D3D9Hooks.h" />
     <ClInclude Include="BicubicScaler.h" />
     <ClInclude Include="CuNNyScaler.h" />
+    <ClInclude Include="DX11Video.h" />
     <ClInclude Include="BorderlessState.h" />
     <ClInclude Include="Patches\BabelPatch.h" />
     <ClInclude Include="Patches\EnginePatches.h" />
@@ -146,6 +147,7 @@
     <ClCompile Include="D3D9Hooks.cpp" />
     <ClCompile Include="BicubicScaler.cpp" />
     <ClCompile Include="CuNNyScaler.cpp" />
+    <ClCompile Include="DX11Video.cpp" />
     <ClCompile Include="Patches\BabelPatch.cpp" />
     <ClCompile Include="Patches\EnginePatches.cpp" />
     <ClCompile Include="PE\PE.cpp" />

@@ -9,6 +9,7 @@
 #include "BorderlessState.h"
 #include "BicubicScaler.h"
 #include "CuNNyScaler.h"
+#include "PALHooks.h"
 
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "d3d11.lib")
@@ -370,6 +371,10 @@ namespace D3D9Hooks
                 dbg_log("[DX11] CuNNy scaler failed to initialize, falling back to bicubic");
             }
         }
+
+        // Initialize DirectShow video capture for DX11 rendering
+        DirectShowVideoScale::InitializeDX11(g_pD3D11Device, g_pD3D11Context);
+        dbg_log("[DX11] DirectShowVideoScale DX11 initialized");
 
         g_dx11Width = screenWidth;
         g_dx11Height = screenHeight;
@@ -901,115 +906,45 @@ namespace D3D9Hooks
 
             if (BorderlessState::g_borderlessActive)
             {
-                // Borderless mode: upscaling with pillarboxing
-                if (RuntimeConfig::DirectX11Upscaling() && CuNNyScaler::IsAvailable())
+                // CuNNy 2x upscale + Lanczos downscale
+                ID3D11ShaderResourceView* cunnyOutput = CuNNyScaler::Upscale2x(
+                    g_pD3D11Context, g_pD3D11SourceSRV, srcWidth, srcHeight);
+                if (!cunnyOutput)
+                    CuNNyScaler::FatalRenderingError("CuNNy upscale");
+
+                UINT upscaledWidth = srcWidth * 2;
+                UINT upscaledHeight = srcHeight * 2;
+
+                if (RuntimeConfig::DebugLogging() && presentLogCount <= 10)
                 {
-                    // High quality path: CuNNy 2x upscale + Lanczos downscale
-                    ID3D11ShaderResourceView* cunnyOutput = CuNNyScaler::Upscale2x(
-                        g_pD3D11Context, g_pD3D11SourceSRV, srcWidth, srcHeight);
-
-                    if (cunnyOutput)
-                    {
-                        UINT upscaledWidth = srcWidth * 2;
-                        UINT upscaledHeight = srcHeight * 2;
-
-                        if (RuntimeConfig::DebugLogging() && presentLogCount <= 10)
-                        {
-                            dbg_log("  [DX11] CuNNy 2x upscale: %dx%d -> %dx%d",
-                                srcWidth, srcHeight, upscaledWidth, upscaledHeight);
-                        }
-
-                        // Use Lanczos downscale for final scale to target size
-                        if (CuNNyScaler::IsDownscaleAvailable())
-                        {
-                            ID3D11ShaderResourceView* downscaleOutput = CuNNyScaler::Downscale(
-                                g_pD3D11Context, cunnyOutput,
-                                upscaledWidth, upscaledHeight,
-                                BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight);
-
-                            if (downscaleOutput)
-                            {
-                                if (RuntimeConfig::DebugLogging() && presentLogCount <= 10)
-                                {
-                                    dbg_log("  [DX11] CuNNy Lanczos downscale: %dx%d -> %dx%d",
-                                        upscaledWidth, upscaledHeight,
-                                        BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight);
-                                }
-
-                                // Final 1:1 copy with positioning
-                                BicubicScaler::Scale(
-                                    g_pD3D11Context,
-                                    downscaleOutput,
-                                    g_pD3D11RTV,
-                                    BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight,
-                                    g_dx11Width, g_dx11Height,
-                                    BorderlessState::g_offsetX, BorderlessState::g_offsetY,
-                                    BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight
-                                );
-                            }
-                            else
-                            {
-                                // Downscale failed, fall back to bicubic for final scale
-                                BicubicScaler::Scale(
-                                    g_pD3D11Context,
-                                    cunnyOutput,
-                                    g_pD3D11RTV,
-                                    upscaledWidth, upscaledHeight,
-                                    g_dx11Width, g_dx11Height,
-                                    BorderlessState::g_offsetX, BorderlessState::g_offsetY,
-                                    BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight
-                                );
-                            }
-                        }
-                        else
-                        {
-                            // No downscale shader, use bicubic for final scale
-                            BicubicScaler::Scale(
-                                g_pD3D11Context,
-                                cunnyOutput,
-                                g_pD3D11RTV,
-                                upscaledWidth, upscaledHeight,
-                                g_dx11Width, g_dx11Height,
-                                BorderlessState::g_offsetX, BorderlessState::g_offsetY,
-                                BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight
-                            );
-                        }
-                    }
-                    else
-                    {
-                        // CuNNy upscale failed, fall back to bicubic
-                        BicubicScaler::Scale(
-                            g_pD3D11Context,
-                            g_pD3D11SourceSRV,
-                            g_pD3D11RTV,
-                            srcWidth, srcHeight,
-                            g_dx11Width, g_dx11Height,
-                            BorderlessState::g_offsetX, BorderlessState::g_offsetY,
-                            BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight
-                        );
-                    }
+                    dbg_log("  [DX11] CuNNy 2x upscale: %dx%d -> %dx%d",
+                        srcWidth, srcHeight, upscaledWidth, upscaledHeight);
                 }
-                else
+
+                ID3D11ShaderResourceView* downscaleOutput = CuNNyScaler::Downscale(
+                    g_pD3D11Context, cunnyOutput,
+                    upscaledWidth, upscaledHeight,
+                    BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight);
+                if (!downscaleOutput)
+                    CuNNyScaler::FatalRenderingError("Lanczos downscale");
+
+                if (RuntimeConfig::DebugLogging() && presentLogCount <= 10)
                 {
-                    // Standard quality path: Bicubic scale only
-                    BicubicScaler::Scale(
-                        g_pD3D11Context,
-                        g_pD3D11SourceSRV,
-                        g_pD3D11RTV,
-                        srcWidth, srcHeight,
-                        g_dx11Width, g_dx11Height,
-                        BorderlessState::g_offsetX, BorderlessState::g_offsetY,
-                        BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight
-                    );
-
-                    if (RuntimeConfig::DebugLogging() && presentLogCount <= 10)
-                    {
-                        dbg_log("  [DX11] Bicubic scale: %dx%d -> %dx%d at offset (%d,%d)",
-                            srcWidth, srcHeight,
-                            BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight,
-                            BorderlessState::g_offsetX, BorderlessState::g_offsetY);
-                    }
+                    dbg_log("  [DX11] Lanczos downscale: %dx%d -> %dx%d",
+                        upscaledWidth, upscaledHeight,
+                        BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight);
                 }
+
+                // Final 1:1 copy with positioning
+                BicubicScaler::Scale(
+                    g_pD3D11Context,
+                    downscaleOutput,
+                    g_pD3D11RTV,
+                    BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight,
+                    g_dx11Width, g_dx11Height,
+                    BorderlessState::g_offsetX, BorderlessState::g_offsetY,
+                    BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight
+                );
             }
             else
             {
@@ -1285,6 +1220,17 @@ namespace D3D9Hooks
         }
 
         return pD3D9;
+    }
+
+    // DX11 resource accessors (for DX11Video)
+    bool IsDX11Active() { return g_dx11Active; }
+    ID3D11DeviceContext* GetDX11Context() { return g_pD3D11Context; }
+    ID3D11RenderTargetView* GetDX11RTV() { return g_pD3D11RTV; }
+    IDXGISwapChain1* GetDXGISwapChain() { return g_pDXGISwapChain; }
+    void GetDX11Dimensions(UINT* pWidth, UINT* pHeight)
+    {
+        if (pWidth) *pWidth = g_dx11Width;
+        if (pHeight) *pHeight = g_dx11Height;
     }
 
     bool Install()

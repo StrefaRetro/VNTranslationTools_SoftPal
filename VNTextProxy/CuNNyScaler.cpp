@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CuNNyScaler.h"
+#include "SharedConstants.h"
 #include "Util/RuntimeConfig.h"
 #include <d3dcompiler.h>
 #include <fstream>
@@ -611,4 +612,13 @@ void main(uint3 dtid : SV_DispatchThreadID) {
     ID3D11ShaderResourceView* GetDownscaledSRV() { return g_pDownscaleOutputSRV; }
     bool IsAvailable() { return g_initialized; }
     bool IsDownscaleAvailable() { return g_initialized && g_pDownscaleCS != nullptr; }
+
+    void FatalRenderingError(const char* context)
+    {
+        std::wstringstream ss;
+        ss << L"Rendering problem in " << context << L".\n\n";
+        ss << L"Try disabling directX11Upscaling setting in " << RUNTIME_CONFIG_FILENAME;
+        MessageBoxW(nullptr, ss.str().c_str(), L"VNTextProxy", MB_ICONERROR);
+        ExitProcess(1);
+    }
 }
