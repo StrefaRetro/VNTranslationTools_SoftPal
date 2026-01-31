@@ -3,7 +3,7 @@
 #include <d3d11.h>
 #include <dxgi1_2.h>
 
-namespace D3D9Hooks {
+namespace DX11Hooks {
     bool Install();
 
     // DX11 resource accessors (for DX11Video)

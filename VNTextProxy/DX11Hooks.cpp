@@ -21,7 +21,7 @@ static void dbg_log(const char* format, ...)
     if (!RuntimeConfig::DebugLogging())
         return;
     if (!g_logFile)
-        g_logFile = _fsopen("./D3D9hooks.log", "w", _SH_DENYNO);
+        g_logFile = _fsopen("./DXhooks.log", "w", _SH_DENYNO);
     if (g_logFile)
     {
         va_list args;
@@ -33,7 +33,7 @@ static void dbg_log(const char* format, ...)
     }
 }
 
-namespace D3D9Hooks
+namespace DX11Hooks
 {
     // Original function pointers
     static IDirect3D9* (WINAPI* oDirect3DCreate9)(UINT SDKVersion) = nullptr;
@@ -359,18 +359,12 @@ namespace D3D9Hooks
         g_dx11ScalerInitialized = true;
         dbg_log("[DX11] Bicubic scaler initialized");
 
-        // Initialize CuNNy neural network scaler (optional, for high quality mode)
-        if (RuntimeConfig::DirectX11Upscaling())
+        // Initialize CuNNy neural network scaler
+        if (!CuNNyScaler::Initialize(g_pD3D11Device))
         {
-            if (CuNNyScaler::Initialize(g_pD3D11Device))
-            {
-                dbg_log("[DX11] CuNNy neural network scaler initialized");
-            }
-            else
-            {
-                dbg_log("[DX11] CuNNy scaler failed to initialize, falling back to bicubic");
-            }
+            CuNNyScaler::FatalRenderingError("CuNNy initialization");
         }
+        dbg_log("[DX11] CuNNy neural network scaler initialized");
 
         // Initialize DirectShow video capture for DX11 rendering
         DirectShowVideoScale::InitializeDX11(g_pD3D11Device, g_pD3D11Context);
@@ -414,40 +408,32 @@ namespace D3D9Hooks
             UINT width = pPresentationParameters ? pPresentationParameters->BackBufferWidth : 800;
             UINT height = pPresentationParameters ? pPresentationParameters->BackBufferHeight : 600;
 
-            // Only initialize DX11 and create copy surfaces if directX11Upscaling is enabled
-            if (RuntimeConfig::DirectX11Upscaling())
+            // Create D3D9 offscreen surface for copying render target
+            IDirect3DDevice9* pDevice = *ppReturnedDeviceInterface;
+            if (g_pD3D9CopySurface)
             {
-                // Create D3D9 offscreen surface for copying render target
-                IDirect3DDevice9* pDevice = *ppReturnedDeviceInterface;
-                if (g_pD3D9CopySurface)
-                {
-                    g_pD3D9CopySurface->Release();
-                    g_pD3D9CopySurface = nullptr;
-                }
-                HRESULT hrCopy = pDevice->CreateOffscreenPlainSurface(
-                    width, height,
-                    D3DFMT_X8R8G8B8,
-                    D3DPOOL_SYSTEMMEM,
-                    &g_pD3D9CopySurface,
-                    nullptr
-                );
-                if (SUCCEEDED(hrCopy))
-                {
-                    dbg_log("  Created D3D9 copy surface %dx%d", width, height);
-                }
-                else
-                {
-                    dbg_log("  Failed to create D3D9 copy surface, hr=0x%x", hrCopy);
-                }
-
-                if (hWnd && InitializeDX11(hWnd, width, height))
-                {
-                    dbg_log("  DX11 hybrid mode enabled (directX11Upscaling=true)");
-                }
+                g_pD3D9CopySurface->Release();
+                g_pD3D9CopySurface = nullptr;
+            }
+            HRESULT hrCopy = pDevice->CreateOffscreenPlainSurface(
+                width, height,
+                D3DFMT_X8R8G8B8,
+                D3DPOOL_SYSTEMMEM,
+                &g_pD3D9CopySurface,
+                nullptr
+            );
+            if (SUCCEEDED(hrCopy))
+            {
+                dbg_log("  Created D3D9 copy surface %dx%d", width, height);
             }
             else
             {
-                dbg_log("  Pure DX9 mode (directX11Upscaling=false) - skipping DX11 initialization");
+                dbg_log("  Failed to create D3D9 copy surface, hr=0x%x", hrCopy);
+            }
+
+            if (hWnd && InitializeDX11(hWnd, width, height))
+            {
+                dbg_log("  DX11 hybrid mode enabled");
             }
         }
 
@@ -538,21 +524,9 @@ namespace D3D9Hooks
             pPresentationParameters->Windowed = TRUE;
             pPresentationParameters->FullScreen_RefreshRateInHz = 0;  // Required for windowed mode
 
-            if (RuntimeConfig::DirectX11Upscaling())
-            {
-                // DX11 mode: Keep D3D9 backbuffer at GAME resolution
-                // DX11 will handle scaling to screen resolution
-                dbg_log("  [Borderless] DX11 mode: keeping backbuffer at game resolution");
-            }
-            else
-            {
-                // Pure DX9 mode: Set backbuffer to SCREEN resolution
-                // We'll use StretchRect to scale from game RT to screen-sized backbuffer
-                pPresentationParameters->BackBufferWidth = BorderlessState::g_screenWidth;
-                pPresentationParameters->BackBufferHeight = BorderlessState::g_screenHeight;
-                dbg_log("  [Borderless] Pure DX9 mode: setting backbuffer to screen resolution %dx%d",
-                    BorderlessState::g_screenWidth, BorderlessState::g_screenHeight);
-            }
+            // Keep D3D9 backbuffer at GAME resolution
+            // DX11 will handle scaling to screen resolution
+            dbg_log("  [Borderless] Keeping backbuffer at game resolution");
 
             // Mark borderless mode as active BEFORE calling Reset
             // This will block ChangeDisplaySettingsExA and window manipulation
@@ -700,9 +674,7 @@ namespace D3D9Hooks
                 gameHeight = BorderlessState::g_gameHeight;
             }
 
-            dbg_log("  [RT] Setting up render target redirection at %dx%d (mode=%s)",
-                gameWidth, gameHeight,
-                RuntimeConfig::DirectX11Upscaling() ? "DX11" : "DX9");
+            dbg_log("  [RT] Setting up render target redirection at %dx%d", gameWidth, gameHeight);
 
             // Get backbuffer reference (we won't render to it, but need to restore it sometimes)
             if (g_pOriginalBackBuffer)
@@ -751,9 +723,8 @@ namespace D3D9Hooks
             }
         }
 
-        // Only reinitialize DX11 when directX11Upscaling is enabled
-        // DX11 is the sole presenter to the window; D3D9 only renders to offscreen RT
-        if (SUCCEEDED(hr) && RuntimeConfig::DirectX11Upscaling())
+        // Reinitialize DX11 - DX11 is the sole presenter to the window
+        if (SUCCEEDED(hr))
         {
             HWND hWnd = BorderlessState::g_mainGameWindow;
             if (!hWnd && pPresentationParameters)
@@ -805,16 +776,12 @@ namespace D3D9Hooks
             // Reinitialize DX11
             if (hWnd && InitializeDX11ForHybrid(hWnd, screenWidth, screenHeight, gameWidth, gameHeight))
             {
-                dbg_log("  [Reset] DX11 reinitialized (directX11Upscaling=true)");
+                dbg_log("  [Reset] DX11 reinitialized");
             }
             else
             {
                 dbg_log("  [Reset] Failed to reinitialize DX11");
             }
-        }
-        else if (SUCCEEDED(hr) && !RuntimeConfig::DirectX11Upscaling())
-        {
-            dbg_log("  [Reset] Pure DX9 mode - skipping DX11 reinitialization (directX11Upscaling=false)");
         }
 
         return hr;
@@ -988,64 +955,6 @@ namespace D3D9Hooks
 
             // Skip D3D9 Present - DX11 is the sole presenter
             return S_OK;
-        }
-
-        // Pure DX9 scaling path: use StretchRect for scaling with pillarboxing
-        if (!RuntimeConfig::DirectX11Upscaling() && g_testRenderTargetActive && g_pTestRenderTarget && g_pOriginalBackBuffer)
-        {
-            if (RuntimeConfig::DebugLogging() && presentLogCount <= 20)
-            {
-                dbg_log("  [DX9] Pure DX9 scaling mode (directX11Upscaling=false)");
-            }
-
-            // Switch to backbuffer for our scaling operation
-            oSetRenderTarget(pThis, 0, g_pOriginalBackBuffer);
-
-            // Clear backbuffer to black for pillarboxing
-            pThis->ColorFill(g_pOriginalBackBuffer, nullptr, D3DCOLOR_XRGB(0, 0, 0));
-
-            if (BorderlessState::g_borderlessActive)
-            {
-                // Borderless mode: scale with aspect ratio preservation
-                RECT srcRect = { 0, 0, (LONG)BorderlessState::g_gameWidth, (LONG)BorderlessState::g_gameHeight };
-                RECT dstRect = {
-                    (LONG)BorderlessState::g_offsetX,
-                    (LONG)BorderlessState::g_offsetY,
-                    (LONG)(BorderlessState::g_offsetX + BorderlessState::g_scaledWidth),
-                    (LONG)(BorderlessState::g_offsetY + BorderlessState::g_scaledHeight)
-                };
-
-                if (RuntimeConfig::DebugLogging() && presentLogCount <= 10)
-                {
-                    dbg_log("  [DX9] StretchRect: %dx%d -> %dx%d at offset (%d,%d)",
-                        BorderlessState::g_gameWidth, BorderlessState::g_gameHeight,
-                        BorderlessState::g_scaledWidth, BorderlessState::g_scaledHeight,
-                        BorderlessState::g_offsetX, BorderlessState::g_offsetY);
-                }
-
-                HRESULT hr = oStretchRect(pThis, g_pTestRenderTarget, &srcRect, g_pOriginalBackBuffer, &dstRect, D3DTEXF_LINEAR);
-                if (FAILED(hr) && RuntimeConfig::DebugLogging() && presentLogCount <= 10)
-                {
-                    dbg_log("  [DX9] StretchRect failed, hr=0x%x", hr);
-                }
-            }
-            else
-            {
-                // Windowed mode: 1:1 copy
-                HRESULT hr = oStretchRect(pThis, g_pTestRenderTarget, nullptr, g_pOriginalBackBuffer, nullptr, D3DTEXF_POINT);
-                if (RuntimeConfig::DebugLogging() && presentLogCount <= 10)
-                {
-                    dbg_log("  [DX9] 1:1 copy, hr=0x%x", hr);
-                }
-            }
-
-            // Present via D3D9
-            HRESULT hrPresent = oPresent(pThis, nullptr, nullptr, hDestWindowOverride, pDirtyRegion);
-
-            // Re-set render target for next frame
-            oSetRenderTarget(pThis, 0, g_pTestRenderTarget);
-
-            return hrPresent;
         }
 
         // Fallback: DX11 not ready yet, use original D3D9 Present
@@ -1235,7 +1144,7 @@ namespace D3D9Hooks
 
     bool Install()
     {
-        dbg_log("D3D9Hooks::Install() called");
+        dbg_log("DX11Hooks::Install() called");
 
         HMODULE hD3D9 = GetModuleHandleA("d3d9.dll");
         if (!hD3D9)
@@ -1245,7 +1154,7 @@ namespace D3D9Hooks
             hD3D9 = LoadLibraryA("d3d9.dll");
             if (!hD3D9)
             {
-                dbg_log("D3D9Hooks::Install: Failed to get/load d3d9.dll");
+                dbg_log("DX11Hooks::Install: Failed to get/load d3d9.dll");
                 return false;
             }
         }
@@ -1253,11 +1162,11 @@ namespace D3D9Hooks
         oDirect3DCreate9 = (decltype(oDirect3DCreate9))GetProcAddress(hD3D9, "Direct3DCreate9");
         if (!oDirect3DCreate9)
         {
-            dbg_log("D3D9Hooks::Install: Failed to find Direct3DCreate9");
+            dbg_log("DX11Hooks::Install: Failed to find Direct3DCreate9");
             return false;
         }
 
-        dbg_log("D3D9Hooks::Install: Found Direct3DCreate9 at 0x%p", oDirect3DCreate9);
+        dbg_log("DX11Hooks::Install: Found Direct3DCreate9 at 0x%p", oDirect3DCreate9);
 
         DetourTransactionBegin();
         DetourUpdateThread(GetCurrentThread());
@@ -1266,11 +1175,11 @@ namespace D3D9Hooks
 
         if (error == NO_ERROR)
         {
-            dbg_log("D3D9Hooks::Install: Hook installed successfully");
+            dbg_log("DX11Hooks::Install: Hook installed successfully");
             return true;
         }
 
-        dbg_log("D3D9Hooks::Install: Failed to install hook, Detours error: %d", error);
+        dbg_log("DX11Hooks::Install: Failed to install hook, Detours error: %d", error);
         return false;
     }
 }

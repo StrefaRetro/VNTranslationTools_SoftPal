@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "DX11Video.h"
-#include "D3D9Hooks.h"
+#include "DX11Hooks.h"
 #include "BorderlessState.h"
 #include "BicubicScaler.h"
 #include "CuNNyScaler.h"
@@ -29,13 +29,13 @@ namespace DX11Video {
     void PresentVideoFrame(ID3D11ShaderResourceView* pVideoSRV, UINT width, UINT height)
     {
         // Get DX11 resources from D3D9Hooks
-        ID3D11DeviceContext* pContext = D3D9Hooks::GetDX11Context();
-        ID3D11RenderTargetView* pRTV = D3D9Hooks::GetDX11RTV();
-        IDXGISwapChain* pSwapChain = D3D9Hooks::GetDXGISwapChain();
+        ID3D11DeviceContext* pContext = DX11Hooks::GetDX11Context();
+        ID3D11RenderTargetView* pRTV = DX11Hooks::GetDX11RTV();
+        IDXGISwapChain* pSwapChain = DX11Hooks::GetDXGISwapChain();
         UINT screenWidth, screenHeight;
-        D3D9Hooks::GetDX11Dimensions(&screenWidth, &screenHeight);
+        DX11Hooks::GetDX11Dimensions(&screenWidth, &screenHeight);
 
-        if (!D3D9Hooks::IsDX11Active() || !pSwapChain || !pContext || !pRTV || !pVideoSRV)
+        if (!DX11Hooks::IsDX11Active() || !pSwapChain || !pContext || !pRTV || !pVideoSRV)
             return;
 
         static int videoFrameCount = 0;

@@ -109,7 +109,8 @@
     <ClInclude Include="ImportHooker.h" />
     <ClInclude Include="LocaleEmulator.h" />
     <ClInclude Include="PALHooks.h" />
-    <ClInclude Include="D3D9Hooks.h" />
+    <ClInclude Include="DX9Hooks.h" />
+    <ClInclude Include="DX11Hooks.h" />
     <ClInclude Include="BicubicScaler.h" />
     <ClInclude Include="CuNNyScaler.h" />
     <ClInclude Include="DX11Video.h" />
@@ -144,7 +145,8 @@
     <ClCompile Include="ImportHooker.cpp" />
     <ClCompile Include="LocaleEmulator.cpp" />
     <ClCompile Include="PALHooks.cpp" />
-    <ClCompile Include="D3D9Hooks.cpp" />
+    <ClCompile Include="DX9Hooks.cpp" />
+    <ClCompile Include="DX11Hooks.cpp" />
     <ClCompile Include="BicubicScaler.cpp" />
     <ClCompile Include="CuNNyScaler.cpp" />
     <ClCompile Include="DX11Video.cpp" />

@@ -495,6 +495,10 @@ void main(uint3 dtid : SV_DispatchThreadID) {
         if (g_pDownscaleOutput) { g_pDownscaleOutput->Release(); g_pDownscaleOutput = nullptr; }
         if (g_pDownscaleOutputSRV) { g_pDownscaleOutputSRV->Release(); g_pDownscaleOutputSRV = nullptr; }
         if (g_pDownscaleOutputUAV) { g_pDownscaleOutputUAV->Release(); g_pDownscaleOutputUAV = nullptr; }
+        g_currentWidth = 0;
+        g_currentHeight = 0;
+        g_downscaleWidth = 0;
+        g_downscaleHeight = 0;
         g_pDevice = nullptr;
         g_initialized = false;
     }

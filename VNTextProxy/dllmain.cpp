@@ -2,7 +2,8 @@
 
 #include "SharedConstants.h"
 #include "PALHooks.h"
-#include "D3D9Hooks.h"
+#include "DX9Hooks.h"
+#include "DX11Hooks.h"
 #include <sstream>
 
 void* OriginalEntryPoint;
@@ -75,7 +76,10 @@ void Initialize()
     EnginePatches::Init();
 
     if (RuntimeConfig::BorderlessFullscreen()) {
-        D3D9Hooks::Install();
+        if (RuntimeConfig::DirectX11Upscaling())
+            DX11Hooks::Install();
+        else
+            DX9Hooks::Install();
         DirectShowVideoScale::Install();
     }
 }
