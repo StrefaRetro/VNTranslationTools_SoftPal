@@ -75,7 +75,7 @@ void Initialize()
 
     EnginePatches::Init();
 
-    if (RuntimeConfig::BorderlessFullscreen()) {
+    if (RuntimeConfig::PillarboxedFullscreen()) {
         if (RuntimeConfig::DirectX11Upscaling())
             DX11Hooks::Install();
         else

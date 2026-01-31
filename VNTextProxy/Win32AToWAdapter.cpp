@@ -507,8 +507,10 @@ LONG Win32AToWAdapter::SetWindowLongAHook(HWND hWnd, int nIndex, LONG dwNewLong)
         case GWL_WNDPROC: indexName = "GWL_WNDPROC"; break;
         case GWL_USERDATA: indexName = "GWL_USERDATA"; break;
     }
-    winapi_log("SetWindowLongA: hWnd=0x%p, nIndex=%s(%d), dwNewLong=0x%x",
-        hWnd, indexName, nIndex, dwNewLong);
+    winapi_log("SetWindowLongA: hWnd=0x%p, nIndex=%s(%d), dwNewLong=0x%x, isMainWnd=%d, borderlessActive=%d",
+        hWnd, indexName, nIndex, dwNewLong,
+        (hWnd == BorderlessState::g_mainGameWindow) ? 1 : 0,
+        BorderlessState::g_borderlessActive ? 1 : 0);
 
     // Block window style changes when borderless mode is active (we manage the window ourselves)
     if (BorderlessState::g_borderlessActive && hWnd == BorderlessState::g_mainGameWindow)
@@ -525,13 +527,16 @@ LONG Win32AToWAdapter::SetWindowLongAHook(HWND hWnd, int nIndex, LONG dwNewLong)
     if (nIndex == GWL_WNDPROC)
         WindowProcs[hWnd] = (WNDPROC)dwNewLong;
 
+    winapi_log("  [SetWindowLongA] ALLOWED");
     return SetWindowLongA(hWnd, nIndex, dwNewLong);
 }
 
 BOOL Win32AToWAdapter::SetWindowPosHook(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags)
 {
-    winapi_log("SetWindowPos: hWnd=0x%p, pos=(%d,%d), size=%dx%d, flags=0x%x",
-        hWnd, X, Y, cx, cy, uFlags);
+    winapi_log("SetWindowPos: hWnd=0x%p, pos=(%d,%d), size=%dx%d, flags=0x%x, isMainWnd=%d, borderlessActive=%d",
+        hWnd, X, Y, cx, cy, uFlags,
+        (hWnd == BorderlessState::g_mainGameWindow) ? 1 : 0,
+        BorderlessState::g_borderlessActive ? 1 : 0);
 
     // Block window position/size changes when borderless mode is active (we manage this ourselves)
     if (BorderlessState::g_borderlessActive && hWnd == BorderlessState::g_mainGameWindow)
@@ -540,6 +545,7 @@ BOOL Win32AToWAdapter::SetWindowPosHook(HWND hWnd, HWND hWndInsertAfter, int X, 
         return TRUE;  // Pretend it succeeded
     }
 
+    winapi_log("  [SetWindowPos] ALLOWED");
     return SetWindowPos(hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
 }
 
@@ -558,7 +564,10 @@ BOOL Win32AToWAdapter::ShowWindowHook(HWND hWnd, int nCmdShow)
         case SW_SHOWNA: cmdName = "SW_SHOWNA"; break;
         case SW_RESTORE: cmdName = "SW_RESTORE"; break;
     }
-    winapi_log("ShowWindow: hWnd=0x%p, nCmdShow=%s(%d)", hWnd, cmdName, nCmdShow);
+    winapi_log("ShowWindow: hWnd=0x%p, nCmdShow=%s(%d), isMainWnd=%d, borderlessActive=%d",
+        hWnd, cmdName, nCmdShow,
+        (hWnd == BorderlessState::g_mainGameWindow) ? 1 : 0,
+        BorderlessState::g_borderlessActive ? 1 : 0);
 
     return ShowWindow(hWnd, nCmdShow);
 }
@@ -782,11 +791,25 @@ LONG Win32AToWAdapter::ChangeDisplaySettingsAHook(DEVMODEA* lpDevMode, DWORD dwF
 {
     if (lpDevMode != nullptr)
     {
-        DEVMODEW devModeW = ConvertDevModeAToW(*lpDevMode);
-        return ChangeDisplaySettingsW(&devModeW, dwFlags);
+        winapi_log("ChangeDisplaySettingsA: %dx%d, %d bpp, %d Hz, flags=0x%x",
+            lpDevMode->dmPelsWidth, lpDevMode->dmPelsHeight,
+            lpDevMode->dmBitsPerPel, lpDevMode->dmDisplayFrequency, dwFlags);
+
+        // Block ALL display mode changes - we always use borderless windowed mode
+        winapi_log("  [Borderless] BLOCKED - returning DISP_CHANGE_SUCCESSFUL without changing mode");
+        return DISP_CHANGE_SUCCESSFUL;
     }
     else
     {
+        winapi_log("ChangeDisplaySettingsA: lpDevMode=NULL (restore), flags=0x%x", dwFlags);
+
+        // Block restore when borderless (game is returning to windowed, Reset() handles this)
+        if (BorderlessState::g_borderlessActive)
+        {
+            winapi_log("  [Borderless] BLOCKED restore - returning DISP_CHANGE_SUCCESSFUL");
+            return DISP_CHANGE_SUCCESSFUL;
+        }
+
         return ChangeDisplaySettingsW(nullptr, dwFlags);
     }
 }
@@ -800,30 +823,20 @@ LONG Win32AToWAdapter::ChangeDisplaySettingsExAHook(LPCSTR lpszDeviceName, DEVMO
             lpDevMode->dmPelsWidth, lpDevMode->dmPelsHeight,
             lpDevMode->dmBitsPerPel, lpDevMode->dmDisplayFrequency, dwflags);
 
-        // Block display mode change when borderless mode is active
-        if (BorderlessState::g_borderlessActive)
-        {
-            winapi_log("  [Borderless] BLOCKED - returning DISP_CHANGE_SUCCESSFUL without changing mode");
-            return DISP_CHANGE_SUCCESSFUL;
-        }
-
-        DEVMODEW devModeW = ConvertDevModeAToW(*lpDevMode);
-        LONG result = ChangeDisplaySettingsExW(
-            lpszDeviceName != nullptr ? SjisTunnelEncoding::Decode(lpszDeviceName).c_str() : nullptr,
-            &devModeW,
-            hwnd,
-            dwflags,
-            lParam
-        );
-        winapi_log("  -> result=%d", result);
-        return result;
+        // Block ALL display mode changes - we always use borderless windowed mode
+        // This handles both:
+        // 1. When already in borderless mode (g_borderlessActive=true)
+        // 2. When transitioning from windowed to fullscreen via game menu (g_borderlessActive=false)
+        // The Reset() hook will handle the actual borderless setup
+        winapi_log("  [Borderless] BLOCKED - returning DISP_CHANGE_SUCCESSFUL without changing mode");
+        return DISP_CHANGE_SUCCESSFUL;
     }
     else
     {
         winapi_log("ChangeDisplaySettingsExA: device=%s, lpDevMode=NULL (restore), flags=0x%x",
             lpszDeviceName ? lpszDeviceName : "(null)", dwflags);
 
-        // Also block restore when borderless (game is returning to windowed, we handle this)
+        // Block restore when borderless (game is returning to windowed, Reset() handles this)
         if (BorderlessState::g_borderlessActive)
         {
             winapi_log("  [Borderless] BLOCKED restore - returning DISP_CHANGE_SUCCESSFUL");
@@ -846,7 +859,7 @@ BOOL Win32AToWAdapter::ClipCursorHook(const RECT* lpRect)
 {
     if (BorderlessState::g_borderlessActive)
     {
-        if (!RuntimeConfig::ClipMouseCursorInBorderlessFullscreen())
+        if (!RuntimeConfig::ClipMouseCursorInPillarboxedFullscreen())
         {
             // Cursor clipping disabled in config - allow cursor to move freely
             winapi_log("ClipCursor: borderless mode, clipping disabled - unclipping cursor");

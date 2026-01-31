@@ -13,8 +13,8 @@ public:
     // Accessors (call only after Load())
     static bool DebugLogging();
     static bool EnableFontSubstitution();
-    static bool BorderlessFullscreen();
-    static bool ClipMouseCursorInBorderlessFullscreen();
+    static bool PillarboxedFullscreen();
+    static bool ClipMouseCursorInPillarboxedFullscreen();
     static bool DirectX11Upscaling();
     static const std::wstring& CustomFontName();
     static const std::wstring& CustomFontFilename();
@@ -31,7 +31,7 @@ private:
     static inline bool _loaded = false;
     static inline bool _debugLogging;
     static inline bool _enableFontSubstitution;
-    static inline bool _borderlessFullscreen;
+    static inline bool _pillarboxedFullscreen;
     static inline bool _clipMouseCursorInBorderlessFullscreen;
     static inline bool _directX11Upscaling;
     static inline std::wstring _customFontName;

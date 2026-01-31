@@ -49,51 +49,72 @@ namespace DX11Video {
         float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
         pContext->ClearRenderTargetView(pRTV, clearColor);
 
-        // Calculate scaled dimensions and offset for pillarboxing
-        UINT scaledWidth = BorderlessState::g_scaledWidth;
-        UINT scaledHeight = BorderlessState::g_scaledHeight;
-        int offsetX = BorderlessState::g_offsetX;
-        int offsetY = BorderlessState::g_offsetY;
-
-        // CuNNy 2x upscale
-        ID3D11ShaderResourceView* cunnyOutput = CuNNyScaler::Upscale2x(
-            pContext, pVideoSRV, width, height);
-        if (!cunnyOutput)
-            CuNNyScaler::FatalRenderingError("video CuNNy upscale");
-
-        UINT upscaledWidth = width * 2;
-        UINT upscaledHeight = height * 2;
-
-        if (videoFrameCount <= 5)
+        if (BorderlessState::g_borderlessActive)
         {
-            dbg_log("[DX11] Video CuNNy 2x upscale: %dx%d -> %dx%d",
-                width, height, upscaledWidth, upscaledHeight);
+            // Borderless mode: CuNNy upscale + Lanczos downscale with pillarboxing
+            UINT scaledWidth = BorderlessState::g_scaledWidth;
+            UINT scaledHeight = BorderlessState::g_scaledHeight;
+            int offsetX = BorderlessState::g_offsetX;
+            int offsetY = BorderlessState::g_offsetY;
+
+            // CuNNy 2x upscale
+            ID3D11ShaderResourceView* cunnyOutput = CuNNyScaler::Upscale2x(
+                pContext, pVideoSRV, width, height);
+            if (!cunnyOutput)
+                CuNNyScaler::FatalRenderingError("video CuNNy upscale");
+
+            UINT upscaledWidth = width * 2;
+            UINT upscaledHeight = height * 2;
+
+            if (videoFrameCount <= 5)
+            {
+                dbg_log("[DX11] Video CuNNy 2x upscale: %dx%d -> %dx%d",
+                    width, height, upscaledWidth, upscaledHeight);
+            }
+
+            // Lanczos downscale for final scale to target size
+            ID3D11ShaderResourceView* downscaleOutput = CuNNyScaler::Downscale(
+                pContext, cunnyOutput,
+                upscaledWidth, upscaledHeight,
+                scaledWidth, scaledHeight);
+            if (!downscaleOutput)
+                CuNNyScaler::FatalRenderingError("video Lanczos downscale");
+
+            if (videoFrameCount <= 5)
+            {
+                dbg_log("[DX11] Video Lanczos downscale: %dx%d -> %dx%d",
+                    upscaledWidth, upscaledHeight, scaledWidth, scaledHeight);
+            }
+
+            // Final 1:1 copy with positioning
+            BicubicScaler::Scale(
+                pContext,
+                downscaleOutput,
+                pRTV,
+                scaledWidth, scaledHeight,
+                screenWidth, screenHeight,
+                offsetX, offsetY,
+                scaledWidth, scaledHeight
+            );
         }
-
-        // Lanczos downscale for final scale to target size
-        ID3D11ShaderResourceView* downscaleOutput = CuNNyScaler::Downscale(
-            pContext, cunnyOutput,
-            upscaledWidth, upscaledHeight,
-            scaledWidth, scaledHeight);
-        if (!downscaleOutput)
-            CuNNyScaler::FatalRenderingError("video Lanczos downscale");
-
-        if (videoFrameCount <= 5)
+        else
         {
-            dbg_log("[DX11] Video Lanczos downscale: %dx%d -> %dx%d",
-                upscaledWidth, upscaledHeight, scaledWidth, scaledHeight);
-        }
+            // Windowed mode: 1:1 copy (no scaling)
+            if (videoFrameCount <= 5)
+            {
+                dbg_log("[DX11] Video 1:1 copy: %dx%d", width, height);
+            }
 
-        // Final 1:1 copy with positioning
-        BicubicScaler::Scale(
-            pContext,
-            downscaleOutput,
-            pRTV,
-            scaledWidth, scaledHeight,
-            screenWidth, screenHeight,
-            offsetX, offsetY,
-            scaledWidth, scaledHeight
-        );
+            BicubicScaler::Scale(
+                pContext,
+                pVideoSRV,
+                pRTV,
+                width, height,
+                screenWidth, screenHeight,
+                0, 0,  // No offset
+                width, height  // No scaling
+            );
+        }
 
         // Present
         HRESULT hr = pSwapChain->Present(1, 0);

@@ -434,6 +434,56 @@ namespace DX11Hooks
             if (hWnd && InitializeDX11(hWnd, width, height))
             {
                 dbg_log("  DX11 hybrid mode enabled");
+
+                // Set up render target redirection for DX11 path
+                // This is needed so Present_Hook can capture the game's rendering
+                dbg_log("  [RT] Setting up render target redirection at %dx%d", width, height);
+
+                // Get backbuffer reference
+                if (g_pOriginalBackBuffer)
+                {
+                    g_pOriginalBackBuffer->Release();
+                    g_pOriginalBackBuffer = nullptr;
+                }
+                pDevice->GetRenderTarget(0, &g_pOriginalBackBuffer);
+                LogSurfaceInfo("[RT] Original backbuffer", g_pOriginalBackBuffer);
+
+                // Create render target at game resolution for game to render to
+                if (g_pTestRenderTarget)
+                {
+                    g_pTestRenderTarget->Release();
+                    g_pTestRenderTarget = nullptr;
+                }
+                HRESULT hrCreate = pDevice->CreateRenderTarget(
+                    width, height,
+                    D3DFMT_X8R8G8B8,
+                    D3DMULTISAMPLE_NONE,
+                    0,
+                    FALSE,  // Not lockable - we'll use GetRenderTargetData
+                    &g_pTestRenderTarget,
+                    nullptr
+                );
+
+                if (SUCCEEDED(hrCreate))
+                {
+                    LogSurfaceInfo("[RT] Game render target", g_pTestRenderTarget);
+
+                    // Redirect rendering to our surface
+                    HRESULT hrSet = oSetRenderTarget(pDevice, 0, g_pTestRenderTarget);
+                    if (SUCCEEDED(hrSet))
+                    {
+                        g_testRenderTargetActive = true;
+                        dbg_log("  [RT] Render target redirection active");
+                    }
+                    else
+                    {
+                        dbg_log("  [RT] Failed to set render target, hr=0x%x", hrSet);
+                    }
+                }
+                else
+                {
+                    dbg_log("  [RT] Failed to create game render target, hr=0x%x", hrCreate);
+                }
             }
         }
 
@@ -476,6 +526,9 @@ namespace DX11Hooks
     HRESULT WINAPI Reset_Hook(IDirect3DDevice9* pThis, D3DPRESENT_PARAMETERS* pPresentationParameters)
     {
         dbg_log("IDirect3DDevice9::Reset called");
+        dbg_log("  Current state: g_borderlessActive=%d, g_gameWidth=%d, g_gameHeight=%d",
+            BorderlessState::g_borderlessActive ? 1 : 0,
+            BorderlessState::g_gameWidth, BorderlessState::g_gameHeight);
         LogPresentParameters("  Before Reset", pPresentationParameters);
 
         // Release old test render target before Reset (required by D3D9)
