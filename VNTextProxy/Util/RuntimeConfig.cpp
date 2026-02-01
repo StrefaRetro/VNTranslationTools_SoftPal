@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "RuntimeConfig.h"
 #include "SharedConstants.h"
+#include "Logger.h"
 #include "external/json.hpp"
 #include <fstream>
 #include <sstream>
@@ -81,27 +82,23 @@ void RuntimeConfig::Load()
 
     _loaded = true;
 
-    // Debug: Write loaded values to winmm_dll_log.txt to confirm config was read
-    FILE* debugLog2 = nullptr;
-    if (fopen_s(&debugLog2, "winmm_dll_log.txt", "at") == 0 && debugLog2) {
-        fprintf(debugLog2, "RuntimeConfig::Load() SUCCESS - Config loaded:\n");
-        fprintf(debugLog2, "  debugLogging: %s\n", _debugLogging ? "true" : "false");
-        fprintf(debugLog2, "  enableFontSubstitution: %s\n", _enableFontSubstitution ? "true" : "false");
-        fprintf(debugLog2, "  customFontName: %ls\n", _customFontName.c_str());
-        fprintf(debugLog2, "  customFontFilename: %ls\n", _customFontFilename.c_str());
-        fprintf(debugLog2, "  monospaceFontFilename: %ls\n", _monospaceFontFilename.c_str());
-        fprintf(debugLog2, "  fontHeightIncrease: %d\n", _fontHeightIncrease);
-        fprintf(debugLog2, "  fontYSpacingBetweenLines: %d\n", _fontYSpacingBetweenLines);
-        fprintf(debugLog2, "  fontYTopPosDecrease: %d\n", _fontYTopPosDecrease);
-        fprintf(debugLog2, "  proportionalFontBold: %s\n", _proportionalFontBold ? "true" : "false");
-        fprintf(debugLog2, "  proportionalLineWidth: %d\n", _proportionalLineWidth);
-        fprintf(debugLog2, "  maxLineWidth: %d\n", _maxLineWidth);
-        fprintf(debugLog2, "  numLinesWarnThreshold: %d\n", _numLinesWarnThreshold);
-        fprintf(debugLog2, "  pillarboxedFullscreen: %s\n", _pillarboxedFullscreen ? "true" : "false");
-        fprintf(debugLog2, "  clipMouseCursorInPillarboxedFullscreen: %s\n", _clipMouseCursorInPillarboxedFullscreen ? "true" : "false");
-        fprintf(debugLog2, "  directX11Upscaling: %s\n", _directX11Upscaling ? "true" : "false");
-        fclose(debugLog2);
-    }
+    // Debug: Log loaded values to confirm config was read
+    proxy_log(LogCategory::TEXT, "RuntimeConfig::Load() SUCCESS - Config loaded:");
+    proxy_log(LogCategory::TEXT, "  debugLogging: %s", _debugLogging ? "true" : "false");
+    proxy_log(LogCategory::TEXT, "  enableFontSubstitution: %s", _enableFontSubstitution ? "true" : "false");
+    proxy_log(LogCategory::TEXT, "  customFontName: %ls", _customFontName.c_str());
+    proxy_log(LogCategory::TEXT, "  customFontFilename: %ls", _customFontFilename.c_str());
+    proxy_log(LogCategory::TEXT, "  monospaceFontFilename: %ls", _monospaceFontFilename.c_str());
+    proxy_log(LogCategory::TEXT, "  fontHeightIncrease: %d", _fontHeightIncrease);
+    proxy_log(LogCategory::TEXT, "  fontYSpacingBetweenLines: %d", _fontYSpacingBetweenLines);
+    proxy_log(LogCategory::TEXT, "  fontYTopPosDecrease: %d", _fontYTopPosDecrease);
+    proxy_log(LogCategory::TEXT, "  proportionalFontBold: %s", _proportionalFontBold ? "true" : "false");
+    proxy_log(LogCategory::TEXT, "  proportionalLineWidth: %d", _proportionalLineWidth);
+    proxy_log(LogCategory::TEXT, "  maxLineWidth: %d", _maxLineWidth);
+    proxy_log(LogCategory::TEXT, "  numLinesWarnThreshold: %d", _numLinesWarnThreshold);
+    proxy_log(LogCategory::TEXT, "  pillarboxedFullscreen: %s", _pillarboxedFullscreen ? "true" : "false");
+    proxy_log(LogCategory::TEXT, "  clipMouseCursorInPillarboxedFullscreen: %s", _clipMouseCursorInPillarboxedFullscreen ? "true" : "false");
+    proxy_log(LogCategory::TEXT, "  directX11Upscaling: %s", _directX11Upscaling ? "true" : "false");
 }
 
 bool RuntimeConfig::DebugLogging() { return _debugLogging; }

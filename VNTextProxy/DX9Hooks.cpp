@@ -5,26 +5,11 @@
 
 #include "SharedConstants.h"
 #include "PillarboxedState.h"
+#include "Util/Logger.h"
 
 #pragma comment(lib, "d3d9.lib")
 
-static FILE* g_logFile = nullptr;
-static void dbg_log(const char* format, ...)
-{
-    if (!RuntimeConfig::DebugLogging())
-        return;
-    if (!g_logFile)
-        g_logFile = _fsopen("./DXhooks.log", "w", _SH_DENYNO);
-    if (g_logFile)
-    {
-        va_list args;
-        va_start(args, format);
-        vfprintf(g_logFile, format, args);
-        fprintf(g_logFile, "\n");
-        va_end(args);
-        fflush(g_logFile);
-    }
-}
+#define dbg_log(...) proxy_log(LogCategory::DX9, __VA_ARGS__)
 
 namespace DX9Hooks
 {

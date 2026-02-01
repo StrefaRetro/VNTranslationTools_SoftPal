@@ -10,28 +10,13 @@
 #include "BicubicScaler.h"
 #include "CuNNyScaler.h"
 #include "PALHooks.h"
+#include "Util/Logger.h"
 
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 
-static FILE* g_logFile = nullptr;
-static void dbg_log(const char* format, ...)
-{
-    if (!RuntimeConfig::DebugLogging())
-        return;
-    if (!g_logFile)
-        g_logFile = _fsopen("./DXhooks.log", "w", _SH_DENYNO);
-    if (g_logFile)
-    {
-        va_list args;
-        va_start(args, format);
-        vfprintf(g_logFile, format, args);
-        fprintf(g_logFile, "\n");
-        va_end(args);
-        fflush(g_logFile);
-    }
-}
+#define dbg_log(...) proxy_log(LogCategory::DX11, __VA_ARGS__)
 
 namespace DX11Hooks
 {

@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CuNNyScaler.h"
 #include "SharedConstants.h"
-#include "Util/RuntimeConfig.h"
+#include "Util/Logger.h"
 #include <d3dcompiler.h>
 #include <sstream>
 
@@ -9,25 +9,10 @@
 
 #pragma comment(lib, "d3dcompiler.lib")
 
+#define cunny_log(...) proxy_log(LogCategory::SHADER, __VA_ARGS__)
+
 namespace CuNNyScaler
 {
-    static FILE* g_cunnyLog = nullptr;
-    static void cunny_log(const char* format, ...)
-    {
-        if (!RuntimeConfig::DebugLogging())
-            return;
-        if (!g_cunnyLog)
-            g_cunnyLog = _fsopen("./CuNNy.log", "w", _SH_DENYNO);
-        if (g_cunnyLog)
-        {
-            va_list args;
-            va_start(args, format);
-            vfprintf(g_cunnyLog, format, args);
-            fprintf(g_cunnyLog, "\n");
-            va_end(args);
-            fflush(g_cunnyLog);
-        }
-    }
     // Common D3D11 header for all passes
     static const char* g_d3d11Header = R"(
 #define V4 min16float4

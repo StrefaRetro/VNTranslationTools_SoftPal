@@ -1,26 +1,11 @@
 #include "pch.h"
 #include "SharedConstants.h"
 #include "PillarboxedState.h"
+#include "Util/Logger.h"
 
 using namespace std;
 
-static FILE* g_winApiLogFile = nullptr;
-static void winapi_log(const char* format, ...)
-{
-    if (!RuntimeConfig::DebugLogging())
-        return;
-    if (!g_winApiLogFile)
-        g_winApiLogFile = _fsopen("./WinAPIhooks.log", "w", _SH_DENYNO);
-    if (g_winApiLogFile)
-    {
-        va_list args;
-        va_start(args, format);
-        vfprintf(g_winApiLogFile, format, args);
-        fprintf(g_winApiLogFile, "\n");
-        va_end(args);
-        fflush(g_winApiLogFile);
-    }
-}
+#define winapi_log(...) proxy_log(LogCategory::HOOKS, __VA_ARGS__)
 
 void Win32AToWAdapter::Init()
 {

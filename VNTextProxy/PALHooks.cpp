@@ -39,23 +39,9 @@ public:
 static const IID IID_ISampleGrabber = { 0x6B652FFF, 0x11FE, 0x4fce, { 0x92, 0xAD, 0x02, 0x66, 0xB5, 0xD7, 0xC7, 0x8F } };
 static const IID IID_ISampleGrabberCB = { 0x0579154A, 0x2B53, 0x4994, { 0xB0, 0xD0, 0xE7, 0x73, 0x14, 0x8E, 0xFF, 0x85 } };
 
-static FILE* g_logFile = nullptr;
-static void dbg_log(const char* format, ...)
-{
-    if (!RuntimeConfig::DebugLogging())
-        return;
-    if (!g_logFile)
-        g_logFile = _fsopen("./PALhooks.log", "w", _SH_DENYNO);
-    if (g_logFile)
-    {
-        va_list args;
-        va_start(args, format);
-        vfprintf(g_logFile, format, args);
-        fprintf(g_logFile, "\n");
-        va_end(args);
-        fflush(g_logFile);
-    }
-}
+#include "Util/Logger.h"
+
+#define dbg_log(...) proxy_log(LogCategory::HOOKS, __VA_ARGS__)
 
 namespace PALGrabCurrentText
 {

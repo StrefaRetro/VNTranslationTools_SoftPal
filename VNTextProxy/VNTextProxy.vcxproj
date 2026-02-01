@@ -136,6 +136,7 @@
     <ClInclude Include="Util\Path.h" />
     <ClInclude Include="Util\StringUtil.h" />
     <ClInclude Include="Util\RuntimeConfig.h" />
+    <ClInclude Include="Util\Logger.h" />
     <ClInclude Include="Win32AToWAdapter.h" />
   </ItemGroup>
   <ItemGroup>
@@ -172,6 +173,7 @@
     <ClCompile Include="Util\Path.cpp" />
     <ClCompile Include="Util\StringUtil.cpp" />
     <ClCompile Include="Util\RuntimeConfig.cpp" />
+    <ClCompile Include="Util\Logger.cpp" />
     <ClCompile Include="Win32AToWAdapter.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -1,34 +1,15 @@
 #pragma once
 
 #include <windows.h>
-#include <cstdio>
-#include <share.h>
-#include "Util/RuntimeConfig.h"
+#include "Util/Logger.h"
 
 // Shared state for pillarboxed fullscreen implementation
 // Accessed by both D3D9Hooks and Win32AToWAdapter
 
+#define pillarbox_log(...) proxy_log(LogCategory::HOOKS, __VA_ARGS__)
+
 namespace PillarboxedState
 {
-    // Logging support
-    inline FILE* g_pillarboxLog = nullptr;
-
-    inline void pillarbox_log(const char* format, ...)
-    {
-        if (!RuntimeConfig::DebugLogging())
-            return;
-        if (!g_pillarboxLog)
-            g_pillarboxLog = _fsopen("./pillarbox.log", "w", _SH_DENYNO);
-        if (g_pillarboxLog)
-        {
-            va_list args;
-            va_start(args, format);
-            vfprintf(g_pillarboxLog, format, args);
-            fprintf(g_pillarboxLog, "\n");
-            va_end(args);
-            fflush(g_pillarboxLog);
-        }
-    }
     // Is pillarboxed mode currently active?
     inline bool g_pillarboxedActive = false;
 
