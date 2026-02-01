@@ -882,12 +882,9 @@ BOOL Win32AToWAdapter::ClipCursorHook(const RECT* lpRect)
     // Only apply pillarboxed coordinate transformation if feature is enabled
     if (RuntimeConfig::PillarboxedFullscreen() && PillarboxedState::g_pillarboxedActive)
     {
-        if (!RuntimeConfig::ClipMouseCursorInPillarboxedFullscreen())
-        {
-            // Cursor clipping disabled in config - allow cursor to move freely
-            winapi_log("ClipCursor: pillarboxed mode, clipping disabled - unclipping cursor");
-            return ClipCursor(nullptr);
-        }
+        // Cursor clipping hardcoded to disabled - allow cursor to move freely
+        winapi_log("ClipCursor: pillarboxed mode, clipping disabled - unclipping cursor");
+        return ClipCursor(nullptr);
 
         if (lpRect != nullptr)
         {

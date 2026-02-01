@@ -1,19 +1,38 @@
 {
+  // *** VNTextProxy-only settings (winmm.dll)
   "debugLogging": false,
-
+  // enableFontSubstitution is a global switch to enable/disable all text proxying code in VNTextProxy
+  // It should be true if the data files contains English-translated script, false if they contain original Japanese script.
   "enableFontSubstitution": true,
-  "customFontName": "Nunito ExtraBold",
-  "customFontFilename": "Nunito ExtraBold.ttf",
-  "monospaceFontFilename": "Inconsolata ExtraBold.ttf",
-  "fontHeightIncrease": 6,
+  // Pixels between rows of text.
   "fontYSpacingBetweenLines": 7,
+  // Number of pixels to raise all text upward in the textbox.
   "fontYTopPosDecrease": 4,
-  "proportionalFontBold": false,
+  // graphicsMode options:
+  //   "raw": original game's rendering, forces 800x600 resolution in fullscreen
+  //   "dx9": upscales to your monitor's native resolution, and corrects aspect ratio for widescreen monitors and DPI scaling
+  //   "dx11": (experimental) adds a sharpening upscaling shader (CuNNy-fast-NVL)
+  "graphicsMode": "dx9",
+
+  // *** VNTextPatch-only settings
+  // Line width used by VNTextPatch to determine when to insert <br>s in the script.
   "proportionalLineWidth": 545,
+  // SoftPAL's runtime maximal line width override. It is a VNTextPatch setting because we override it in SCRIPT.SRC.
+  // Generally, we don't want this to ever be reached in the translated script, as it linebreaks character-by-character
+  // instead of word-by-word. This value also affects the time it takes to fade-in the text.
+  // So this should be slightly larger than proportionalLineWidth.
   "maxLineWidth": 570,
+  // Number of lines to trigger a warning in VNTextPatch. Should be 1 above the max number of lines in the textbox.
   "numLinesWarnThreshold": 4,
 
-  "pillarboxedFullscreen": true,
-  "directX11Upscaling": true,
-  "clipMouseCursorInPillarboxedFullscreen": false
+  // *** Shared text settings
+  // Font filename before ".ttf" must be the same as the internal name of the font.
+  //
+  // Main font. We use the ExtraBold weight because it looks good with the black outlines SoftPal adds around each shape.
+  "customFontFilename": "Nunito ExtraBold.ttf",
+  // Monospace is used in niche situations like messages rendered on a computer within the fiction.
+  "monospaceFontFilename": "Inconsolata ExtraBold.ttf",
+  // Font height increase relative to baseline, generally 21 -> 27.
+  // This increases the size of the entire font but is measured in terms of pixel height, not "pt"s.
+  "fontHeightIncrease": 6
 }

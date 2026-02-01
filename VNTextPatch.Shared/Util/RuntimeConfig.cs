@@ -13,13 +13,11 @@ namespace VNTextPatch.Shared.Util
         private static bool _loaded = false;
 
         public static bool DebugLogging { get; private set; }
-        public static string CustomFontName { get; private set; }
         public static string CustomFontFilename { get; private set; }
         public static string MonospaceFontFilename { get; private set; }
         public static int FontHeightIncrease { get; private set; }
         public static int FontYSpacingBetweenLines { get; private set; }
         public static int FontYTopPosDecrease { get; private set; }
-        public static bool ProportionalFontBold { get; private set; }
         public static int ProportionalLineWidth { get; private set; }
         public static int MaxLineWidth { get; private set; }
         public static int NumLinesWarnThreshold { get; private set; }
@@ -72,13 +70,11 @@ namespace VNTextPatch.Shared.Util
             }
 
             DebugLogging = config.debugLogging;
-            CustomFontName = config.customFontName ?? throw new InvalidDataException("customFontName is required");
             CustomFontFilename = config.customFontFilename ?? throw new InvalidDataException("customFontFilename is required");
             MonospaceFontFilename = config.monospaceFontFilename ?? throw new InvalidDataException("monospaceFontFilename is required");
             FontHeightIncrease = config.fontHeightIncrease;
             FontYSpacingBetweenLines = config.fontYSpacingBetweenLines;
             FontYTopPosDecrease = config.fontYTopPosDecrease;
-            ProportionalFontBold = config.proportionalFontBold;
             ProportionalLineWidth = config.proportionalLineWidth;
             MaxLineWidth = config.maxLineWidth;
             NumLinesWarnThreshold = config.numLinesWarnThreshold;
@@ -89,13 +85,11 @@ namespace VNTextPatch.Shared.Util
         private class ConfigData
         {
             public bool debugLogging { get; set; }
-            public string customFontName { get; set; }
             public string customFontFilename { get; set; }
             public string monospaceFontFilename { get; set; }
             public int fontHeightIncrease { get; set; }
             public int fontYSpacingBetweenLines { get; set; }
             public int fontYTopPosDecrease { get; set; }
-            public bool proportionalFontBold { get; set; }
             public int proportionalLineWidth { get; set; }
             public int maxLineWidth { get; set; }
             public int numLinesWarnThreshold { get; set; }

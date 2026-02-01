@@ -29,7 +29,7 @@ namespace VNTextPatch.Shared.Util
                     throw new FileNotFoundException($"Failed to load custom font: {CustomFontFilePath}");
             }
 
-            _fontName = RuntimeConfig.CustomFontName;
+            _fontName = Path.GetFileNameWithoutExtension(RuntimeConfig.CustomFontFilename);
             _fontBold = false;
             _defaultLineWidth = RuntimeConfig.ProportionalLineWidth;
 
