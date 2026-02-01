@@ -113,6 +113,7 @@
     <ClInclude Include="DX11Hooks.h" />
     <ClInclude Include="BicubicScaler.h" />
     <ClInclude Include="CuNNyScaler.h" />
+    <ClInclude Include="DX11Shaders.h" />
     <ClInclude Include="DX11Video.h" />
     <ClInclude Include="PillarboxedState.h" />
     <ClInclude Include="Patches\BabelPatch.h" />

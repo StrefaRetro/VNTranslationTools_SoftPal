@@ -1,5 +1,5 @@
 {
-  "debugLogging": true,
+  "debugLogging": false,
 
   "enableFontSubstitution": true,
   "customFontName": "Nunito ExtraBold",
@@ -13,7 +13,7 @@
   "maxLineWidth": 570,
   "numLinesWarnThreshold": 4,
 
-  "pillarboxedFullscreen": false,
-  "directX11Upscaling": false,
+  "pillarboxedFullscreen": true,
+  "directX11Upscaling": true,
   "clipMouseCursorInPillarboxedFullscreen": false
 }

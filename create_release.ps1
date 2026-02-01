@@ -12,11 +12,6 @@ New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
 Write-Host "Copying winmm.dll..."
 Copy-Item "VNTextProxy\Release\winmm.dll" -Destination $releaseDir
 
-# Copy HLSL shader files
-Write-Host "Copying HLSL shaders..."
-Copy-Item "VNTextProxy\CuNNy-fast-NVL.hlsl" -Destination $releaseDir
-Copy-Item "VNTextProxy\Downscale.hlsl" -Destination $releaseDir
-
 # Copy config JSON file
 Write-Host "Copying VNTranslationToolsConstants.json..."
 Copy-Item "VNTranslationToolsConstants.json" -Destination $releaseDir

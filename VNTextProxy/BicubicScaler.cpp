@@ -1,108 +1,12 @@
 #include "pch.h"
 #include "BicubicScaler.h"
+#include "DX11Shaders.h"
 #include <d3dcompiler.h>
 
 #pragma comment(lib, "d3dcompiler.lib")
 
 namespace BicubicScaler
 {
-    // Shader source code
-    static const char* g_shaderSource = R"(
-// Bicubic interpolation shader for upscaling
-
-cbuffer ScalerConstants : register(b0)
-{
-    float2 srcTexelSize;    // 1.0 / srcDimensions
-    float2 dstTexelSize;    // 1.0 / dstDimensions (unused but useful for debugging)
-    float2 srcDimensions;   // source texture size
-    float2 dstDimensions;   // destination size
-};
-
-Texture2D srcTexture : register(t0);
-SamplerState linearSampler : register(s0);
-
-struct VS_INPUT
-{
-    float2 pos : POSITION;
-    float2 tex : TEXCOORD0;
-};
-
-struct PS_INPUT
-{
-    float4 pos : SV_POSITION;
-    float2 tex : TEXCOORD0;
-};
-
-// Vertex shader - fullscreen triangle
-PS_INPUT VS_Main(VS_INPUT input)
-{
-    PS_INPUT output;
-    output.pos = float4(input.pos, 0.0, 1.0);
-    output.tex = input.tex;
-    return output;
-}
-
-// Cubic weight function (Catmull-Rom spline)
-// This gives sharper results than Mitchell-Netravali for upscaling
-float4 CubicWeights(float x)
-{
-    float x2 = x * x;
-    float x3 = x2 * x;
-
-    // Catmull-Rom weights
-    float4 w;
-    w.x = -0.5*x3 + x2 - 0.5*x;           // weight for p0
-    w.y = 1.5*x3 - 2.5*x2 + 1.0;          // weight for p1
-    w.z = -1.5*x3 + 2.0*x2 + 0.5*x;       // weight for p2
-    w.w = 0.5*x3 - 0.5*x2;                // weight for p3
-
-    return w;
-}
-
-// Sample texture with bicubic interpolation
-float4 SampleBicubic(float2 texcoord)
-{
-    // Convert to texel coordinates
-    float2 texelCoord = texcoord * srcDimensions - 0.5;
-    float2 texelFloor = floor(texelCoord);
-    float2 texelFrac = texelCoord - texelFloor;
-
-    // Get cubic weights for x and y
-    float4 xWeights = CubicWeights(texelFrac.x);
-    float4 yWeights = CubicWeights(texelFrac.y);
-
-    // Sample 4x4 grid of texels
-    float4 result = float4(0, 0, 0, 0);
-
-    [unroll]
-    for (int j = -1; j <= 2; j++)
-    {
-        float yWeight = (j == -1) ? yWeights.x : (j == 0) ? yWeights.y : (j == 1) ? yWeights.z : yWeights.w;
-
-        [unroll]
-        for (int i = -1; i <= 2; i++)
-        {
-            float xWeight = (i == -1) ? xWeights.x : (i == 0) ? xWeights.y : (i == 1) ? xWeights.z : xWeights.w;
-
-            // Clamp coordinates to valid range
-            float2 sampleCoord = (texelFloor + float2(i, j) + 0.5) * srcTexelSize;
-            sampleCoord = clamp(sampleCoord, 0.0, 1.0);
-
-            // Point sample (no filtering)
-            float4 texel = srcTexture.SampleLevel(linearSampler, sampleCoord, 0);
-            result += texel * xWeight * yWeight;
-        }
-    }
-
-    return saturate(result);
-}
-
-// Pixel shader
-float4 PS_Main(PS_INPUT input) : SV_TARGET
-{
-    return SampleBicubic(input.tex);
-}
-)";
 
     // Resources
     static ID3D11VertexShader* g_pVertexShader = nullptr;
@@ -136,8 +40,8 @@ float4 PS_Main(PS_INPUT input) : SV_TARGET
         ID3DBlob* pVSBlob = nullptr;
         ID3DBlob* pErrorBlob = nullptr;
         hr = D3DCompile(
-            g_shaderSource,
-            strlen(g_shaderSource),
+            g_BicubicShader,
+            strlen(g_BicubicShader),
             "BicubicScaler",
             nullptr,
             nullptr,
@@ -188,8 +92,8 @@ float4 PS_Main(PS_INPUT input) : SV_TARGET
         // Compile pixel shader
         ID3DBlob* pPSBlob = nullptr;
         hr = D3DCompile(
-            g_shaderSource,
-            strlen(g_shaderSource),
+            g_BicubicShader,
+            strlen(g_BicubicShader),
             "BicubicScaler",
             nullptr,
             nullptr,

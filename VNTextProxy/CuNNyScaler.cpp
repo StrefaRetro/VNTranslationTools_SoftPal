@@ -3,8 +3,9 @@
 #include "SharedConstants.h"
 #include "Util/RuntimeConfig.h"
 #include <d3dcompiler.h>
-#include <fstream>
 #include <sstream>
+
+#include "DX11Shaders.h"
 
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -81,19 +82,6 @@ uint2 Rmp8x8(uint idx) { return uint2(idx % 8, idx / 8); }
         float inputPtX, inputPtY, outputPtX, outputPtY;
     };
 
-    static std::string LoadFile(const char* name) {
-        cunny_log("LoadFile: Loading %s", name);
-        std::ifstream f(name);
-        if (f) {
-            std::stringstream ss;
-            ss << f.rdbuf();
-            std::string content = ss.str();
-            cunny_log("LoadFile: SUCCESS - loaded %zu bytes", content.length());
-            return content;
-        }
-        cunny_log("LoadFile: FAILED - could not open %s", name);
-        return "";
-    }
 
     static std::string ExtractPass(const std::string& src, int num) {
         std::string marker = "//!PASS " + std::to_string(num);
@@ -381,12 +369,8 @@ void main(uint3 dtid : SV_DispatchThreadID) {
         }
         cunny_log("Initialize: Samplers created");
 
-        std::string shader = LoadFile("CuNNy-fast-NVL.hlsl");
-        if (shader.empty()) {
-            cunny_log("Initialize: FAILED - shader file not found or empty");
-            return false;
-        }
-        cunny_log("Initialize: Shader file loaded, %zu bytes", shader.length());
+        std::string shader = g_CuNNyFastNVL;
+        cunny_log("Initialize: Shader loaded from embedded data, %zu bytes", shader.length());
 
         // Extract and compile each pass
         for (int p = 1; p <= 4; p++) {
@@ -424,8 +408,8 @@ void main(uint3 dtid : SV_DispatchThreadID) {
         }
 
         // Load and compile downscale shader
-        std::string downscaleSrc = LoadFile("Downscale.hlsl");
-        if (!downscaleSrc.empty()) {
+        std::string downscaleSrc = g_DownscaleHLSL;
+        {
             std::string functions = ExtractDownscaleFunctions(downscaleSrc);
             std::string body = ExtractDownscaleBody(downscaleSrc);
             if (!body.empty()) {
@@ -442,8 +426,6 @@ void main(uint3 dtid : SV_DispatchThreadID) {
                     cunny_log("Initialize: WARNING - Downscale shader failed to compile, will use direct copy");
                 }
             }
-        } else {
-            cunny_log("Initialize: WARNING - Downscale.hlsl not found, will use direct copy");
         }
 
         g_initialized = true;
