@@ -82,6 +82,9 @@ void Initialize()
             DX9Hooks::Install();
         DirectShowVideoScale::Install();
     }
+    else {
+        PALVideoFix::Install();
+    }
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)

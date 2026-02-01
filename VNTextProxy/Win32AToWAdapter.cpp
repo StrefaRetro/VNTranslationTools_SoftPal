@@ -485,7 +485,8 @@ HWND Win32AToWAdapter::CreateWindowExAHook(DWORD dwExStyle, LPCSTR lpClassName, 
     winapi_log("  -> HWND=0x%p", hWnd);
 
     // Track the main game window (FlyableHeart class with no parent)
-    if (lpClassName && hWndParent == nullptr && PillarboxedState::g_mainGameWindow == nullptr)
+    // Only track if pillarboxedFullscreen is enabled
+    if (RuntimeConfig::PillarboxedFullscreen() && lpClassName && hWndParent == nullptr && PillarboxedState::g_mainGameWindow == nullptr)
     {
         // Check if this looks like the main game window (not a child or popup)
         if (dwStyle & WS_OVERLAPPEDWINDOW || dwStyle & WS_POPUP)
@@ -513,7 +514,8 @@ LONG Win32AToWAdapter::SetWindowLongAHook(HWND hWnd, int nIndex, LONG dwNewLong)
         PillarboxedState::g_pillarboxedActive ? 1 : 0);
 
     // Block window style changes when pillarboxed mode is active (we manage the window ourselves)
-    if (PillarboxedState::g_pillarboxedActive && hWnd == PillarboxedState::g_mainGameWindow)
+    // Only do this if pillarboxedFullscreen is enabled in config
+    if (RuntimeConfig::PillarboxedFullscreen() && PillarboxedState::g_pillarboxedActive && hWnd == PillarboxedState::g_mainGameWindow)
     {
         if (nIndex == GWL_STYLE || nIndex == GWL_EXSTYLE)
         {
@@ -539,7 +541,8 @@ BOOL Win32AToWAdapter::SetWindowPosHook(HWND hWnd, HWND hWndInsertAfter, int X, 
         PillarboxedState::g_pillarboxedActive ? 1 : 0);
 
     // Block window position/size changes when pillarboxed mode is active (we manage this ourselves)
-    if (PillarboxedState::g_pillarboxedActive && hWnd == PillarboxedState::g_mainGameWindow)
+    // Only do this if pillarboxedFullscreen is enabled in config
+    if (RuntimeConfig::PillarboxedFullscreen() && PillarboxedState::g_pillarboxedActive && hWnd == PillarboxedState::g_mainGameWindow)
     {
         winapi_log("  [Pillarboxed] BLOCKED position/size change");
         return TRUE;  // Pretend it succeeded
@@ -789,6 +792,17 @@ BOOL Win32AToWAdapter::EnumDisplaySettingsAHook(LPCSTR lpszDeviceName, DWORD iMo
 
 LONG Win32AToWAdapter::ChangeDisplaySettingsAHook(DEVMODEA* lpDevMode, DWORD dwFlags)
 {
+    // If pillarboxedFullscreen is disabled, pass through to original function
+    if (!RuntimeConfig::PillarboxedFullscreen())
+    {
+        if (lpDevMode != nullptr)
+        {
+            DEVMODEW devModeW = ConvertDevModeAToW(*lpDevMode);
+            return ChangeDisplaySettingsW(&devModeW, dwFlags);
+        }
+        return ChangeDisplaySettingsW(nullptr, dwFlags);
+    }
+
     if (lpDevMode != nullptr)
     {
         winapi_log("ChangeDisplaySettingsA: %dx%d, %d bpp, %d Hz, flags=0x%x",
@@ -816,6 +830,29 @@ LONG Win32AToWAdapter::ChangeDisplaySettingsAHook(DEVMODEA* lpDevMode, DWORD dwF
 
 LONG Win32AToWAdapter::ChangeDisplaySettingsExAHook(LPCSTR lpszDeviceName, DEVMODEA* lpDevMode, HWND hwnd, DWORD dwflags, LPVOID lParam)
 {
+    // If pillarboxedFullscreen is disabled, pass through to original function
+    if (!RuntimeConfig::PillarboxedFullscreen())
+    {
+        if (lpDevMode != nullptr)
+        {
+            DEVMODEW devModeW = ConvertDevModeAToW(*lpDevMode);
+            return ChangeDisplaySettingsExW(
+                lpszDeviceName != nullptr ? SjisTunnelEncoding::Decode(lpszDeviceName).c_str() : nullptr,
+                &devModeW,
+                hwnd,
+                dwflags,
+                lParam
+            );
+        }
+        return ChangeDisplaySettingsExW(
+            lpszDeviceName != nullptr ? SjisTunnelEncoding::Decode(lpszDeviceName).c_str() : nullptr,
+            nullptr,
+            hwnd,
+            dwflags,
+            lParam
+        );
+    }
+
     if (lpDevMode != nullptr)
     {
         winapi_log("ChangeDisplaySettingsExA: device=%s, %dx%d, %d bpp, %d Hz, flags=0x%x",
@@ -857,7 +894,8 @@ LONG Win32AToWAdapter::ChangeDisplaySettingsExAHook(LPCSTR lpszDeviceName, DEVMO
 
 BOOL Win32AToWAdapter::ClipCursorHook(const RECT* lpRect)
 {
-    if (PillarboxedState::g_pillarboxedActive)
+    // Only apply pillarboxed coordinate transformation if feature is enabled
+    if (RuntimeConfig::PillarboxedFullscreen() && PillarboxedState::g_pillarboxedActive)
     {
         if (!RuntimeConfig::ClipMouseCursorInPillarboxedFullscreen())
         {
@@ -880,7 +918,7 @@ BOOL Win32AToWAdapter::ClipCursorHook(const RECT* lpRect)
         }
     }
 
-    // Not in pillarboxed mode, pass through
+    // Not in pillarboxed mode or feature disabled, pass through
     return ClipCursor(lpRect);
 }
 
@@ -888,7 +926,8 @@ BOOL Win32AToWAdapter::GetCursorPosHook(LPPOINT lpPoint)
 {
     BOOL result = GetCursorPos(lpPoint);
 
-    if (result && PillarboxedState::g_pillarboxedActive && lpPoint != nullptr)
+    // Only apply pillarboxed coordinate transformation if feature is enabled
+    if (result && RuntimeConfig::PillarboxedFullscreen() && PillarboxedState::g_pillarboxedActive && lpPoint != nullptr)
     {
         // Transform screen coordinates to game coordinates
         int gameX, gameY;
@@ -903,7 +942,8 @@ BOOL Win32AToWAdapter::GetCursorPosHook(LPPOINT lpPoint)
 
 BOOL Win32AToWAdapter::SetCursorPosHook(int X, int Y)
 {
-    if (PillarboxedState::g_pillarboxedActive)
+    // Only apply pillarboxed coordinate transformation if feature is enabled
+    if (RuntimeConfig::PillarboxedFullscreen() && PillarboxedState::g_pillarboxedActive)
     {
         // Transform game coordinates to screen coordinates
         int screenX, screenY;
@@ -921,7 +961,8 @@ BOOL Win32AToWAdapter::GetClientRectHook(HWND hWnd, LPRECT lpRect)
 
     // In pillarboxed mode, return the game resolution instead of actual window size
     // This prevents the game from caching the large screen resolution
-    if (result && PillarboxedState::g_pillarboxedActive && hWnd == PillarboxedState::g_mainGameWindow && lpRect)
+    // Only do this if pillarboxedFullscreen is enabled in config
+    if (result && RuntimeConfig::PillarboxedFullscreen() && PillarboxedState::g_pillarboxedActive && hWnd == PillarboxedState::g_mainGameWindow && lpRect)
     {
         winapi_log("GetClientRect: hWnd=0x%p, actual=%dx%d -> returning game res %dx%d",
             hWnd, lpRect->right, lpRect->bottom,

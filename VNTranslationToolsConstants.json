@@ -13,7 +13,7 @@
   "maxLineWidth": 570,
   "numLinesWarnThreshold": 4,
 
-  "pillarboxedFullscreen": true,
+  "pillarboxedFullscreen": false,
   "directX11Upscaling": false,
   "clipMouseCursorInPillarboxedFullscreen": false
 }
